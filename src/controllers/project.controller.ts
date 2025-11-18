@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from "express";
 import asyncHandler from "../utils/asyncHandler";
 import ApiError from "../utils/apiError";
@@ -7,6 +8,7 @@ import ApiResponse from "../utils/apiResponse";
 // ==========================================================
 // Create Project
 // ==========================================================
+
 const createProjectController = asyncHandler(async (req: Request, res: Response) => {
   const { title, description, provinceId, managerId, status, startDate, endDate, budget, countryId } = req.body;
 

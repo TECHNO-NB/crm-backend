@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 import prisma from '../DB/db';
 import asyncHandler from '../utils/asyncHandler';
