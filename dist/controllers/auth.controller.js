@@ -68,7 +68,19 @@ const loginUserControllers = (0, asyncHandler_1.default)((req, res) => __awaiter
     if (!email || !password) {
         throw new apiError_1.default(false, 400, 'Please fill the all required field');
     }
-    const user = yield db_1.default.user.findUnique({ where: { email: email } });
+    const user = yield db_1.default.user.findUnique({
+        where: { email: email },
+        select: {
+            id: true,
+            email: true,
+            phone: true,
+            avatarUrl: true,
+            country: true,
+            fullName: true,
+            role: true,
+            password: true,
+        },
+    });
     if (!user || !user.password) {
         throw new apiError_1.default(false, 404, 'User not found');
     }

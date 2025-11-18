@@ -37,7 +37,7 @@ const app = (0, express_1.default)();
 exports.app = app;
 // 🌐 CORS Configuration
 app.use((0, cors_1.default)({
-    origin: ['*', process.env.FRONTEND_URL, process.env.FRONTEND_URL_ADMIN],
+    origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_ADMIN],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
 }));

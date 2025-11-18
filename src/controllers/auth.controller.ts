@@ -58,7 +58,19 @@ const loginUserControllers = asyncHandler(async (req: Request, res: Response): P
   if (!email || !password) {
     throw new ApiError(false, 400, 'Please fill the all required field');
   }
-  const user = await prisma.user.findUnique({ where: { email: email } });
+  const user = await prisma.user.findUnique({
+    where: { email: email },
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+      avatarUrl: true,
+      country: true,
+      fullName: true,
+      role: true,
+      password: true,
+    },
+  });
   if (!user || !user.password) {
     throw new ApiError(false, 404, 'User not found');
   }
@@ -107,7 +119,7 @@ const verifyUserControllers = asyncHandler(async (req: Request, res: Response): 
       phone: true,
       avatarUrl: true,
       country: true,
-      fullName:true,
+      fullName: true,
       role: true,
     },
   });
