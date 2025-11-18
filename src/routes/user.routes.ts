@@ -11,18 +11,18 @@ import { jwtVerify, authorizeRoles } from "../middlewares/authMiddleware.js";
 const router = Router();
 
 
-router.get("/", jwtVerify, getAllUsers);
+router.get("/",  getAllUsers);
 
 // get only one user
-router.get("/:id", jwtVerify, getOneUser);
+router.get("/:id", getOneUser);
 
 // Admin and HR can update users
-router.put("/:id", jwtVerify, authorizeRoles("admin", "hr"), updateUser);
+router.put("/:id",  updateUser);
 
 // Admin can delete users
-router.delete("/:id", jwtVerify, authorizeRoles("admin"), deleteUser);
+router.delete("/:id",  deleteUser);
 
 // Admin can change roles
-router.patch("/:id/role", jwtVerify, authorizeRoles("admin"), changeUserRole);
+router.patch("/:id/role",  changeUserRole);
 
 export default router;

@@ -13,16 +13,16 @@ import { jwtVerify, authorizeRoles } from '../middlewares/authMiddleware';
 const router = Router();
 
 // Authenticated routes
-router.get('/count', jwtVerify, getAllUnreadMessageCountController);
-router.get('/private-message-count', jwtVerify, getOnlyPrivateUnreadMessageCountController);
-router.get('/', jwtVerify, getAllMessagesController); // Fetch all messages
-router.get('/:id', jwtVerify, getMessageByIdController); // Fetch single message
+router.get('/count', getAllUnreadMessageCountController);
+router.get('/private-message-count', getOnlyPrivateUnreadMessageCountController);
+router.get('/',  getAllMessagesController); // Fetch all messages
+router.get('/:id',  getMessageByIdController); // Fetch single message
 
 // Sending messages (all authenticated users can send)
-router.post('/', jwtVerify, createMessageController);
+router.post('/',  createMessageController);
 
 // Only sender, receiver, or admin can update/delete
-router.put('/:id', jwtVerify, authorizeRoles('admin'), updateMessageController);
-router.delete('/:id', jwtVerify, authorizeRoles('admin'), deleteMessageController);
+router.put('/:id',  updateMessageController);
+router.delete('/:id',  deleteMessageController);
 
 export default router;

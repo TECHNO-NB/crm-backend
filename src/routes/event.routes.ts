@@ -11,7 +11,7 @@ import { jwtVerify, authorizeRoles } from "../middlewares/authMiddleware";
 const router = Router();
 
 // Public / Authenticated routes
-router.get("/", jwtVerify, getAllEventsController);
+router.get("/", getAllEventsController);
 router.get("/:id", jwtVerify, getEventByIdController);
 
 // Admin / Manager routes

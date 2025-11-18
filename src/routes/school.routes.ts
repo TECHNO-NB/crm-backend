@@ -14,11 +14,11 @@ const router = Router();
 router.use(jwtVerify);
 
 // Admin and Country Manager can manage schools
-router.get("/", authorizeRoles("admin", "country_manager", "viewer","volunteer"), getAllSchoolsController);
-router.get("/:id", authorizeRoles("admin", "country_manager", "viewer"), getSchoolByIdController);
+router.get("/",  getAllSchoolsController);
+router.get("/:id", getSchoolByIdController);
 
-router.post("/", authorizeRoles("admin", "country_manager"), createSchoolController);
-router.put("/:id", authorizeRoles("admin", "country_manager"), updateSchoolController);
-router.delete("/:id", authorizeRoles("admin", "country_manager"), deleteSchoolController);
+router.post("/",  createSchoolController);
+router.put("/:id",  updateSchoolController);
+router.delete("/:id", deleteSchoolController);
 
 export default router;

@@ -7,8 +7,7 @@ const router = express.Router();
 // Only specific roles can access
 router.get(
   '/',
-  jwtVerify,
-  authorizeRoles('admin', 'chairman', 'financial_manager',"volunteer"),
+
   getProjectFinancials
 );
 
