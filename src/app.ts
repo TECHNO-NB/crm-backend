@@ -33,7 +33,7 @@ const app = express();
 // 🌐 CORS Configuration
 app.use(
   cors({
-    origin: ['*', process.env.FRONTEND_URL!, process.env.FRONTEND_URL_ADMIN!],
+    origin: [ process.env.FRONTEND_URL!, process.env.FRONTEND_URL_ADMIN!],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   })

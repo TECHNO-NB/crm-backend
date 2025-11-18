@@ -3,7 +3,7 @@ import prisma from "../DB/db";
 import asyncHandler from "../utils/asyncHandler";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
-import { ExpenseStatus } from "@prisma/client"; // Import enum
+
 
 // Create a new expense
 const createExpenseController = asyncHandler(async (req: Request, res: Response):Promise<any> => {
@@ -24,7 +24,7 @@ const createExpenseController = asyncHandler(async (req: Request, res: Response)
       category,
       projectId,
       submittedById,
-      status: status as ExpenseStatus,
+      status: status ,
       invoiceUrl,
       date: date ? new Date(date) : undefined,
       notes,
@@ -39,9 +39,9 @@ const createExpenseController = asyncHandler(async (req: Request, res: Response)
 const getAllExpensesController = asyncHandler(async (req: Request, res: Response):Promise<any>  => {
   const { projectId, submittedById, status } = req.query;
 
-  let expenseStatus: ExpenseStatus | undefined = undefined;
+  let expenseStatus = undefined;
   if (status && typeof status === "string" && ["pending", "approved", "rejected"].includes(status)) {
-    expenseStatus = status as ExpenseStatus;
+    expenseStatus = status 
   }
 
   const expenses = await prisma.expense.findMany({
@@ -87,7 +87,7 @@ const updateExpenseController = asyncHandler(async (req: Request, res: Response)
       amount: amount !== undefined ? Number(amount) : undefined,
       category,
       projectId,
-      status: status as ExpenseStatus,
+      status: status,
       invoiceUrl,
       date: date ? new Date(date) : undefined,
       notes,
