@@ -1,9 +1,9 @@
 import { CookieOptions } from 'express';
 
 export const cookieOptions: CookieOptions = {
-  domain: "whv-crm.vercel.app",
-  path: "/",
   httpOnly: true,
   secure: true,
-  sameSite: "none"
+  sameSite: 'none',
+  domain: '.worldhinduvision.org' ,
+  maxAge: 60 * 24 * 60 * 60 * 1000,
 };
