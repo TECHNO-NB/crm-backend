@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+enum UserRole {
+  chairman
+  country_manager
+  finance
+  legal
+  hr
+  admin
+  it
+  councilor
+  volunteer
+  viewer
+}
+
+enum ProjectStatus {
+  planned
+  active
+  completed
+  on_hold
+  cancelled
+}
+
+enum DonationMethod {
+  online
+  bank
+  cash
+  cheque
+}
+
+enum DonationStatus {
+  pending
+  completed
+  refunded
+}
+
+enum ExpenseStatus {
+  pending
+  approved
+  rejected
+}
+
+// ====================== MODELS ======================
+
+// 1. User
+model User {
+  id                String         @id @default(uuid())
+  fullName          String
+  email             String         @unique
+  phone             String?        @unique
+  password          String
+  refreshToken      String?
+  role              UserRole       @default(volunteer)
+  countryId         String
+  country           Country        @relation(fields: [countryId], references: [id])
+  provinceId        String?
+  province          Province?      @relation(fields: [provinceId], references: [id])
+  isActive          Boolean        @default(true)
+  lastLogin         DateTime?
+  avatarUrl         String?
+  metadata          Json?
+  address           String
+
+  // 🔧 Relation to Project (assigned project)
+  projectId         String?
+  project           Project?       @relation("UserProject", fields: [projectId], references: [id])
+
+  // 🔧 Managed projects (one-to-many)
+  managedProjects   Project[]      @relation("ManagerProjects")
+
+  // 🔧 New: Reverse relation for Project.workers
+  assignedProjects  Project[]      @relation("ProjectWorkers")
+
+  submittedExpenses Expense[]      @relation("SubmittedExpenses")
+  approvedExpenses  Expense[]      @relation("ApprovedExpenses")
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  messagesSent      Message[]      @relation("MessagesFrom")
+  messagesReceived  Message[]      @relation("MessagesTo")
+  eventsOrganized   Event[]        @relation("OrganizerEvents")
+  assets            Asset[]
+  ticketsRequested  Ticket[]       @relation("RequestedTickets")
+  ticketsAssigned   Ticket[]       @relation("AssignedTickets")
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+// 2. Country 
+model Country {
+  id          String     @id @default(uuid())
+  countryName String
+  code        String
+  users       User[]
+  schools     School[]
+  projects    Project[]
+  provinces   Province[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// 3. Province
+model Province {
+  id        String    @id @default(uuid())
+  name      String
+  code      String
+  users     User[]
+  countryId String
+  country   Country   @relation(fields: [countryId], references: [id]) 
+  schools   School[]
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// 4. School
+model School {
+  id           String    @id @default(uuid())
+  name         String
+  provinceId   String?
+  province     Province? @relation(fields: [provinceId], references: [id])
+  address      String?
+  studentCount Int?
+  countryId    String
+  country      Country   @relation(fields: [countryId], references: [id])
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  photos       String[] // Cloudinary URLs
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// 5. Project
+model Project {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  provinceId  String?
+  province    Province?     @relation(fields: [provinceId], references: [id])
+  managerId   String?
+  manager     User?         @relation("ManagerProjects", fields: [managerId], references: [id])
+  status      ProjectStatus
+  startDate   DateTime?
+  endDate     DateTime?
+
+  // 🔧 Workers (many-to-many)
+  workers     User[]        @relation("ProjectWorkers")
+
+  // 🔧 New: Reverse of User.project
+  assignedUsers User[]      @relation("UserProject")
+
+  budget      Float?
+  spent       Float         @default(0)
+  documents   String[]
+  donations   Donation[]
+  expenses    Expense[]
+  countryId   String
+  country     Country       @relation(fields: [countryId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([provinceId])
+  @@index([managerId])
+}
+
+// 6. Donation
+model Donation {
+  id         String         @id @default(uuid())
+  donorName  String
+  donorEmail String?
+  donorPhone String?
+  amount     Float
+  method     DonationMethod
+  status     DonationStatus
+  receivedAt DateTime?
+  projectId  String?
+  project    Project?       @relation(fields: [projectId], references: [id])
+  receiptUrl String?
+  note       String?
+  invoiceNo  String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([receivedAt])
+  @@index([status])
+  @@index([projectId])
+}
+
+// 7. Expense
+model Expense {
+  id            String        @id @default(uuid())
+  amount        Float
+  category      String
+  projectId     String?
+  project       Project?      @relation(fields: [projectId], references: [id])
+  submittedById String?
+  submittedBy   User?         @relation("SubmittedExpenses", fields: [submittedById], references: [id])
+  approvedById  String?
+  approvedBy    User?         @relation("ApprovedExpenses", fields: [approvedById], references: [id])
+  status        ExpenseStatus
+  invoiceUrl    String?
+  date          DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([projectId, status])
+}
+
+// 8. AuditLog (immutable)
+model AuditLog {
+  id             String   @id @default(uuid())
+  actorId        String?
+  actor          User?    @relation(fields: [actorId], references: [id])
+  action         String
+  collectionName String
+  documentId     String
+  before         Json?
+  after          Json?
+  createdAt      DateTime @default(now())
+}
+
+// 9. Notification
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  channel   String   // email, sms, in_app, whatsapp
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  meta      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 10. Message (Chat / Communication)
+model Message {
+  id          String   @id @default(uuid())
+  fromUserId  String?
+  fromUser    User?    @relation("MessagesFrom", fields: [fromUserId], references: [id])
+  toUserId    String?
+  toUser      User?    @relation("MessagesTo", fields: [toUserId], references: [id])
+  groupId     String?
+  subject     String?
+  body        String
+  channel     String   // 'email' | 'whatsapp' | 'internal'
+  isRead      Boolean  @default(false)
+  meta        Json?
+  attachments String[] // Cloudinary URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([toUserId])
+  @@index([fromUserId])
+}
+
+// 11. Event
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime?
+  organizerId String?
+  organizer   User?     @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  attendees   Json?     // [{id, name, status}]
+  location    String?
+  attachments String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// 12. Asset
+model Asset {
+  id           String    @id @default(uuid())
+  name         String
+  type         String
+  location     String?
+  ownerId      String?
+  owner        User?     @relation(fields: [ownerId], references: [id])
+  purchaseDate DateTime?
+  serialNo     String?
+  status       String
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// 13. Ticket
+model Ticket {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  requesterId String?
+  requester   User?    @relation("RequestedTickets", fields: [requesterId], references: [id])
+  assigneeId  String?
+  assignee    User?    @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  priority    String?  // 'low' | 'medium' | 'high'
+  status      String   // 'open' | 'in_progress' | 'closed'
+  logs        Json?
+  attachments String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+}

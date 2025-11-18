@@ -1,0 +1,24 @@
+# Ignore build output
+dist/
+build/
+
+# Ignore node modules
+node_modules/
+
+# Ignore environment files
+.env
+
+# Ignore all minified files
+*.min.js
+
+# Ignore specific files
+src/legacy-code.ts
+
+# Ignore frontend folder
+client/
+./config
+
+./test
+test
+test.js
+./src/test

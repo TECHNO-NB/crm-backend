@@ -1,0 +1,28 @@
+// error handling
+
+const errorHandler = (req,res,next) => {
+  process.on('uncaughtException', (err,next) => {
+    console.error('Uncaught Exception:', err.message);
+    process.exit(1);
+    
+  });
+
+  process.on('unhandledRejection', (promise, reason) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+  });
+
+  process.on('SIGINT', (err) => {
+    console.log('Received SIGINT. Gracefully shutting down.');
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('Received SIGTERM. Gracefully shutting down.');
+    process.exit(0);
+  });
+
+  next()
+};
+
+export default errorHandler;
