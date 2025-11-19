@@ -12,99 +12,71 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProjectFinancials = exports.getDashboardData = void 0;
+exports.getAllCountryFinanceDetails = void 0;
 const asyncHandler_1 = __importDefault(require("../utils/asyncHandler"));
 const db_1 = __importDefault(require("../DB/db"));
-/**
- * @desc Get dashboard summary for financial, projects, donations, expenses
- * @route GET /api/v1/dashboard
- * @access Private (Admin, Finance, Chairman, Country Manager)
- */
-exports.getDashboardData = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Total users by role
-    const usersByRole = yield db_1.default.user.groupBy({
-        by: ['role'],
-        _count: { role: true },
-    });
-    // Projects summary
-    const projectsSummary = yield db_1.default.project.groupBy({
-        by: ['status'],
-        _count: { status: true },
-    });
-    // Total donations and pending donations
-    const donations = yield db_1.default.donation.groupBy({
-        by: ['status'],
-        _sum: { amount: true },
-    });
-    // Total expenses by status
-    const expenses = yield db_1.default.expense.groupBy({
-        by: ['status'],
-        _sum: { amount: true },
-    });
-    // Top performing manager by total project spent amount
-    const topManager = yield db_1.default.user.findFirst({
-        where: { managedProjects: { some: {} } },
-        orderBy: {
-            managedProjects: {
-                _sum: { spent: 'desc' },
-            },
-        },
-        include: {
-            managedProjects: true,
-        },
-    });
-    // Country-wise financial summary
-    const countryPerformance = yield db_1.default.country.findMany({
-        include: {
-            projects: {
-                select: {
-                    title: true,
-                    budget: true,
-                    spent: true,
-                    donations: { select: { amount: true } },
-                },
-            },
-        },
-    });
+const getAllCountryFinanceDetails = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const getTopPerformerCountry = yield db_1.default.$queryRaw `
+  SELECT 
+    c.id AS country_id,
+    c."countryName" AS country_name,
+    u."fullName" AS manager_name,
+    u."avatarUrl" AS avatar,
+
+    COALESCE(SUM(d.amount), 0) AS total_donations,
+    COALESCE(SUM(e.amount), 0) AS total_expenses,
+
+    (COALESCE(SUM(d.amount), 0) - COALESCE(SUM(e.amount), 0)) AS net_balance
+
+  FROM "Country" c
+  
+  LEFT JOIN "User" u 
+    ON u."countryId" = c.id 
+    AND u.role = 'country_manager'
+
+  LEFT JOIN "Project" p 
+    ON p."countryId" = c.id
+
+  LEFT JOIN "Donation" d 
+    ON d."projectId" = p.id
+
+  LEFT JOIN "Expense" e 
+    ON e."projectId" = p.id
+
+  GROUP BY 
+    c.id, 
+    c."countryName", 
+    u."fullName",
+    u."avatarUrl"
+
+
+  ORDER BY net_balance DESC;
+`;
+    const totalDonation = yield db_1.default.$queryRaw `
+  SELECT  COALESCE(SUM(d."amount"),0) AS total_donations FROM "Donation" AS d;
+  `;
+    const totalExpenses = yield db_1.default.$queryRaw `
+  SELECT COALESCE(SUM(e."amount"),0) AS total_expenses FROM "Expense" AS e;
+  
+  `;
+    const topExpensesCategory = yield db_1.default.$queryRaw `
+  SELECT 
+    e."category" AS category,
+    COALESCE(SUM(e."amount"), 0) AS total_amount
+  FROM "Expense" AS e
+  GROUP BY e."category"
+  ORDER BY total_amount DESC;
+`;
+    const netBalance = totalDonation[0].total_donations - totalExpenses[0].total_expenses;
     res.status(200).json({
         success: true,
         data: {
-            usersByRole,
-            projectsSummary,
-            donations,
-            expenses,
-            topManager,
-            countryPerformance,
+            topPerformerCountry: getTopPerformerCountry,
+            totalDonationIncome: totalDonation,
+            totalExpenses: totalExpenses,
+            netBalance: netBalance,
+            topExpensesCategory,
         },
     });
 }));
-/**
- * @desc Get detailed project financials
- * @route GET /api/v1/projects/:id/financials
- * @access Private
- */
-exports.getProjectFinancials = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const project = yield db_1.default.project.findUnique({
-        where: { id },
-        include: {
-            donations: true,
-            expenses: true,
-        },
-    });
-    if (!project) {
-        return res.status(404).json({ success: false, message: 'Project not found' });
-    }
-    const totalDonations = project.donations.reduce((acc, d) => acc + d.amount, 0);
-    const totalExpenses = project.expenses.reduce((acc, e) => acc + e.amount, 0);
-    res.status(200).json({
-        success: true,
-        data: {
-            projectId: project.id,
-            projectTitle: project.title,
-            totalDonations,
-            totalExpenses,
-            balance: totalDonations - totalExpenses,
-        },
-    });
-}));
+exports.getAllCountryFinanceDetails = getAllCountryFinanceDetails;

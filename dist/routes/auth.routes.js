@@ -11,5 +11,5 @@ const router = express_1.default.Router();
 router.post('/register', multerMiddleware_1.default.single('avatar'), auth_controller_1.registerUserControllers);
 router.post('/login', auth_controller_1.loginUserControllers);
 router.get('/verify', authMiddleware_1.jwtVerify, auth_controller_1.verifyUserControllers);
-router.post('/logout', auth_controller_1.logoutUserControllers);
+router.post('/logout', authMiddleware_1.jwtVerify, auth_controller_1.logoutUserControllers);
 exports.default = router;

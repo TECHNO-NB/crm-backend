@@ -1,6 +1,8 @@
 import express from 'express';
-import {  getProjectFinancials } from '../controllers/financedashboard.controller.js';
+// import {  getProjectFinancials } from '../controllers/financedashboard.controller.js';
 import { jwtVerify, authorizeRoles } from '../middlewares/authMiddleware.js';
+
+import { getAllCountryFinanceDetails } from '../controllers/financedashboard.controller.js';
 
 const router = express.Router();
 
@@ -8,7 +10,7 @@ const router = express.Router();
 router.get(
   '/',
 
-  getProjectFinancials
+  getAllCountryFinanceDetails
 );
 
 export default router;

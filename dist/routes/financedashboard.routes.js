@@ -7,5 +7,5 @@ const express_1 = __importDefault(require("express"));
 const financedashboard_controller_js_1 = require("../controllers/financedashboard.controller.js");
 const router = express_1.default.Router();
 // Only specific roles can access
-router.get('/', financedashboard_controller_js_1.getProjectFinancials);
+router.get('/', financedashboard_controller_js_1.getAllCountryFinanceDetails);
 exports.default = router;

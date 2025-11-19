@@ -100,6 +100,9 @@ const getOnlyPrivateUnreadMessageCountController = (0, asyncHandler_1.default)((
             toUserId: id,
             isRead: false,
         },
+        orderBy: {
+            "createdAt": 'desc'
+        }
     });
     res
         .status(200)

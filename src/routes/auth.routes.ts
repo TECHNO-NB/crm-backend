@@ -16,6 +16,6 @@ router.post('/login', loginUserControllers);
 
 router.get('/verify', jwtVerify, verifyUserControllers);
 
-router.post('/logout', logoutUserControllers);
+router.post('/logout',jwtVerify, logoutUserControllers);
 
 export default router;

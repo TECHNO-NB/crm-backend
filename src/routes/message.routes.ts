@@ -13,8 +13,8 @@ import { jwtVerify, authorizeRoles } from '../middlewares/authMiddleware';
 const router = Router();
 
 // Authenticated routes
-router.get('/count', getAllUnreadMessageCountController);
-router.get('/private-message-count', getOnlyPrivateUnreadMessageCountController);
+router.get('/count',jwtVerify, getAllUnreadMessageCountController);
+router.get('/private-message-count',jwtVerify, getOnlyPrivateUnreadMessageCountController);
 router.get('/',  getAllMessagesController); // Fetch all messages
 router.get('/:id',  getMessageByIdController); // Fetch single message
 

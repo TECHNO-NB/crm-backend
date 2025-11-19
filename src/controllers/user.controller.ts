@@ -11,18 +11,21 @@ import { uploadToCloudinary } from '../utils/cloudinary';
 const getAllUsers = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   const users = await prisma.$queryRaw`
   SELECT 
-  u.id, u."fullName", u.email, u.phone, u.role,
-  u."countryId", c."countryName" AS "countryName",
-  u."provinceId", u."avatarUrl", u.address,
-  u."isActive", u."createdAt", u."updatedAt",
-  MAX(m."createdAt") AS "latestMessageDate"
-FROM "User" u
-LEFT JOIN "Country" c
-  ON c.id = u."countryId"
-LEFT JOIN "Message" m
-  ON m."toUserId" = u.id
-GROUP BY u.id, c.id
-ORDER BY "latestMessageDate" DESC NULLS LAST;
+    u.id, u."fullName", u.email, u.phone, u.role,
+    u."countryId", c."countryName" AS "countryName",
+    u."provinceId", u."avatarUrl", u.address,
+    u."isActive", u."createdAt", u."updatedAt",
+    lm."latestMessageDate"
+  FROM "User" u
+  LEFT JOIN "Country" c
+    ON c.id = u."countryId"
+  LEFT JOIN (
+    SELECT "toUserId", MAX("createdAt") AS "latestMessageDate"
+    FROM "Message"
+    GROUP BY "toUserId"
+  ) lm
+    ON lm."toUserId" = u.id
+ ORDER BY lm."latestMessageDate" ASC NULLS LAST;
 
 `;
 
