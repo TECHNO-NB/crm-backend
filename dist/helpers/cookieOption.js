@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cookieOptions = void 0;
 exports.cookieOptions = {
-    domain: "whv-crm.vercel.app",
-    path: "/",
     httpOnly: true,
     secure: true,
-    sameSite: "none"
+    sameSite: 'none',
+    domain: '.worldhinduvision.org',
+    maxAge: 60 * 24 * 60 * 60 * 1000,
 };

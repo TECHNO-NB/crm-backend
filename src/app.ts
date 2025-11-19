@@ -25,20 +25,21 @@ import countryRoutes from './routes/country.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import financialRoutes from './routes/financial.routes.js';
 import financialdashboardRoutes from './routes/financedashboard.routes.js';
-import countrymanagerdashboardRoutes from "./routes/countrymanager.dashboard.routes.js"
-import countrymanageruserRoutes from "./routes/countrymanager.user.routes.js"
+import countrymanagerdashboardRoutes from './routes/countrymanager.dashboard.routes.js';
+import countrymanageruserRoutes from './routes/countrymanager.user.routes.js';
 
 const app = express();
 
 // 🌐 CORS Configuration
 app.use(
   cors({
-    origin: [ process.env.FRONTEND_URL!, process.env.FRONTEND_URL_ADMIN!],
+    origin: [process.env.FRONTEND_URL!, process.env.FRONTEND_URL_ADMIN!],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   })
 );
 
+app.set('trust proxy', true);
 //  Rate Limiting
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
