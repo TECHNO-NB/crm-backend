@@ -6,6 +6,6 @@ import { jwtVerify,authorizeRoles } from "../middlewares/authMiddleware";
 const router = express.Router();
 
 // GET /api/v1/dashboard
-router.get("/", getDashboardReportController);
+router.get("/", jwtVerify, getDashboardReportController);
 
 export default router;
