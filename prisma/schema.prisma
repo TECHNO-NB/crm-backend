@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 enum UserRole {
   chairman
   country_manager
@@ -50,50 +48,51 @@ enum ExpenseStatus {
 }
 
 enum ExpenseCategory {
-  temple_maintenance    
-  festival_event         
-  charity_support        
-  education_support       
-  medical_assistance     
-  food_prasad            
-  travel_transport 
-  office_supplies        
-  staff_salary           
-  utility_bills        
-  construction_renovation 
-  miscellaneous       
-  project   
+  temple_maintenance
+  festival_event
+  charity_support
+  education_support
+  medical_assistance
+  food_prasad
+  travel_transport
+  office_supplies
+  staff_salary
+  utility_bills
+  construction_renovation
+  miscellaneous
+  project
 }
+
 // ====================== MODELS ======================
 
 // 1. User
 model User {
-  id                String         @id @default(uuid())
-  fullName          String
-  email             String         @unique
-  phone             String?        @unique
-  password          String
-  refreshToken      String?
-  role              UserRole       @default(volunteer)
-  countryId         String
-  country           Country        @relation(fields: [countryId], references: [id])
-  provinceId        String?
-  province          Province?      @relation(fields: [provinceId], references: [id])
-  isActive          Boolean        @default(true)
-  lastLogin         DateTime?
-  avatarUrl         String?
-  metadata          Json?
-  address           String
+  id           String    @id @default(uuid())
+  fullName     String
+  email        String    @unique
+  phone        String?   @unique
+  password     String
+  refreshToken String?
+  role         UserRole  @default(volunteer)
+  countryId    String
+  country      Country   @relation(fields: [countryId], references: [id])
+  provinceId   String?
+  province     Province? @relation(fields: [provinceId], references: [id])
+  isActive     Boolean   @default(true)
+  lastLogin    DateTime?
+  avatarUrl    String?
+  metadata     Json?
+  address      String
 
   // 🔧 Relation to Project (assigned project)
-  projectId         String?
-  project           Project?       @relation("UserProject", fields: [projectId], references: [id])
+  projectId String?
+  project   Project? @relation("UserProject", fields: [projectId], references: [id])
 
   // 🔧 Managed projects (one-to-many)
-  managedProjects   Project[]      @relation("ManagerProjects")
+  managedProjects Project[] @relation("ManagerProjects")
 
   // 🔧 New: Reverse relation for Project.workers
-  assignedProjects  Project[]      @relation("ProjectWorkers")
+  assignedProjects Project[] @relation("ProjectWorkers")
 
   submittedExpenses Expense[]      @relation("SubmittedExpenses")
   approvedExpenses  Expense[]      @relation("ApprovedExpenses")
@@ -129,7 +128,7 @@ model Province {
   code      String
   users     User[]
   countryId String
-  country   Country   @relation(fields: [countryId], references: [id]) 
+  country   Country   @relation(fields: [countryId], references: [id])
   schools   School[]
   projects  Project[]
   createdAt DateTime  @default(now())
@@ -168,20 +167,20 @@ model Project {
   endDate     DateTime?
 
   // 🔧 Workers (many-to-many)
-  workers     User[]        @relation("ProjectWorkers")
+  workers User[] @relation("ProjectWorkers")
 
   // 🔧 New: Reverse of User.project
-  assignedUsers User[]      @relation("UserProject")
+  assignedUsers User[] @relation("UserProject")
 
-  budget      Float?
-  spent       Float         @default(0)
-  documents   String[]
-  donations   Donation[]
-  expenses    Expense[]
-  countryId   String
-  country     Country       @relation(fields: [countryId], references: [id])
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  budget    Float?
+  spent     Float      @default(0)
+  documents String[]
+  donations Donation[]
+  expenses  Expense[]
+  countryId String
+  country   Country    @relation(fields: [countryId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@index([provinceId])
   @@index([managerId])
@@ -212,21 +211,21 @@ model Donation {
 
 // 7. Expense
 model Expense {
-  id            String        @id @default(uuid())
+  id            String          @id @default(uuid())
   amount        Float
   category      ExpenseCategory
   projectId     String?
-  project       Project?      @relation(fields: [projectId], references: [id])
+  project       Project?        @relation(fields: [projectId], references: [id])
   submittedById String?
-  submittedBy   User?         @relation("SubmittedExpenses", fields: [submittedById], references: [id])
+  submittedBy   User?           @relation("SubmittedExpenses", fields: [submittedById], references: [id])
   approvedById  String?
-  approvedBy    User?         @relation("ApprovedExpenses", fields: [approvedById], references: [id])
+  approvedBy    User?           @relation("ApprovedExpenses", fields: [approvedById], references: [id])
   status        ExpenseStatus
   invoiceUrl    String?
   date          DateTime?
   notes         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@index([projectId, status])
 }
@@ -249,7 +248,7 @@ model Notification {
   id        String   @id @default(uuid())
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
-  channel   String   // email, sms, in_app, whatsapp
+  channel   String // email, sms, in_app, whatsapp
   title     String
   body      String
   read      Boolean  @default(false)
@@ -268,7 +267,7 @@ model Message {
   groupId     String?
   subject     String?
   body        String
-  channel     String   // 'email' | 'whatsapp' | 'internal'
+  channel     String // 'email' | 'whatsapp' | 'internal'
   isRead      Boolean  @default(false)
   meta        Json?
   attachments String[] // Cloudinary URLs
@@ -288,7 +287,7 @@ model Event {
   endAt       DateTime?
   organizerId String?
   organizer   User?     @relation("OrganizerEvents", fields: [organizerId], references: [id])
-  attendees   Json?     // [{id, name, status}]
+  attendees   Json? // [{id, name, status}]
   location    String?
   attachments String[]
   createdAt   DateTime  @default(now())
@@ -320,8 +319,8 @@ model Ticket {
   requester   User?    @relation("RequestedTickets", fields: [requesterId], references: [id])
   assigneeId  String?
   assignee    User?    @relation("AssignedTickets", fields: [assigneeId], references: [id])
-  priority    String?  // 'low' | 'medium' | 'high'
-  status      String   // 'open' | 'in_progress' | 'closed'
+  priority    String? // 'low' | 'medium' | 'high'
+  status      String // 'open' | 'in_progress' | 'closed'
   logs        Json?
   attachments String[]
   createdAt   DateTime @default(now())

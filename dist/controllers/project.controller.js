@@ -57,7 +57,7 @@ const getAllProjectsController = (0, asyncHandler_1.default)((req, res) => __awa
             province: true,
             country: true,
             donations: true,
-            expenses: true,
+            // expenses: true,
             workers: true, // Include assigned users
         },
     });

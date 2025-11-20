@@ -37,7 +37,7 @@ const createProjectController = asyncHandler(async (req: Request, res: Response)
 // Get All Projects
 // ==========================================================
 const getAllProjectsController = asyncHandler(async (req: Request, res: Response) => {
-  const { status, managerId } = req.query;
+   const { status, managerId } = req.query;
 
   const projects = await prisma.project.findMany({
     where: {
@@ -50,7 +50,7 @@ const getAllProjectsController = asyncHandler(async (req: Request, res: Response
       province: true,
       country: true,
       donations: true,
-      expenses: true,
+      // expenses: true,
       workers: true, // Include assigned users
     },
   });

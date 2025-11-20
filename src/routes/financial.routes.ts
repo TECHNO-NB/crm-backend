@@ -7,7 +7,7 @@ const router = express.Router();
 // Only specific roles can access
 router.get(
   '/dashboard',
- 
+   jwtVerify,
   getFinancialDashboardController
 );
 
