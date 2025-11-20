@@ -39,19 +39,19 @@ app.use(
   })
 );
 
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
 //  Rate Limiting
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 50, // max 50 requests
-  handler: (req, res) => {
-    console.log(`Rate limit hit`);
-    res.status(429).json({ message: 'Too many requests, slow down!' });
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: 1 * 60 * 1000, // 1 minute
+//   max: 50, // max 50 requests
+//   handler: (req, res) => {
+//     console.log(`Rate limit hit`);
+//     res.status(429).json({ message: 'Too many requests, slow down!' });
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+// app.use(limiter);
 
 // 🧩 Global Middlewares
 app.use(cookieParser());
