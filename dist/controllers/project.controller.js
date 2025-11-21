@@ -17,28 +17,44 @@ const asyncHandler_1 = __importDefault(require("../utils/asyncHandler"));
 const apiError_1 = __importDefault(require("../utils/apiError"));
 const db_1 = __importDefault(require("../DB/db"));
 const apiResponse_1 = __importDefault(require("../utils/apiResponse"));
-// ==========================================================
+const cloudinary_1 = require("../utils/cloudinary");
 // Create Project
-// ==========================================================
 const createProjectController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { title, description, provinceId, managerId, status, startDate, endDate, budget, countryId } = req.body;
+    const { title, description, provinceId, managerId, status, startDate, endDate, budget, countryId, workers, } = req.body;
     if (!title || !status || !countryId) {
-        throw new apiError_1.default(false, 400, "Title, status, and countryId are required");
+        throw new apiError_1.default(false, 400, 'Title, status, and countryId are required');
+    }
+    let documentUrls = [];
+    if (req.files && Array.isArray(req.files)) {
+        for (const file of req.files) {
+            const uploadResult = yield (0, cloudinary_1.uploadToCloudinary)(file);
+            documentUrls.push(uploadResult);
+        }
+    }
+    let workersToConnect = undefined;
+    if (workers) {
+        const workerArray = typeof workers === 'string' ? JSON.parse(workers) : workers;
+        if (Array.isArray(workerArray) && workerArray.length > 0) {
+            workersToConnect = workerArray.map((id) => ({ id }));
+        }
     }
     const project = yield db_1.default.project.create({
-        data: {
-            title,
+        data: Object.assign({ title,
             description,
             provinceId,
             managerId,
-            status,
-            startDate: startDate ? new Date(startDate) : undefined,
-            endDate: endDate ? new Date(endDate) : undefined,
-            budget: budget ? Number(budget) : undefined,
-            countryId,
+            status, startDate: startDate ? new Date(startDate) : undefined, endDate: endDate ? new Date(endDate) : undefined, budget: budget ? Number(budget) : undefined, countryId, documents: documentUrls }, (workersToConnect && {
+            workers: {
+                connect: workersToConnect,
+            },
+        })),
+        include: {
+            workers: true,
+            manager: true,
+            province: true,
         },
     });
-    res.status(201).json(new apiResponse_1.default(true, 201, "Project created successfully", project));
+    res.status(201).json(new apiResponse_1.default(true, 201, 'Project created successfully', project));
 }));
 exports.createProjectController = createProjectController;
 // ==========================================================
@@ -61,7 +77,7 @@ const getAllProjectsController = (0, asyncHandler_1.default)((req, res) => __awa
             workers: true, // Include assigned users
         },
     });
-    res.status(200).json(new apiResponse_1.default(true, 200, "Projects fetched successfully", projects));
+    res.status(200).json(new apiResponse_1.default(true, 200, 'Projects fetched successfully', projects));
 }));
 exports.getAllProjectsController = getAllProjectsController;
 // ==========================================================
@@ -81,8 +97,8 @@ const getProjectByIdController = (0, asyncHandler_1.default)((req, res) => __awa
         },
     });
     if (!project)
-        throw new apiError_1.default(false, 404, "Project not found");
-    res.status(200).json(new apiResponse_1.default(true, 200, "Project fetched successfully", project));
+        throw new apiError_1.default(false, 404, 'Project not found');
+    res.status(200).json(new apiResponse_1.default(true, 200, 'Project fetched successfully', project));
 }));
 exports.getProjectByIdController = getProjectByIdController;
 // ==========================================================
@@ -105,7 +121,7 @@ const updateProjectController = (0, asyncHandler_1.default)((req, res) => __awai
             spent: spent ? Number(spent) : undefined,
         },
     });
-    res.status(200).json(new apiResponse_1.default(true, 200, "Project updated successfully", project));
+    res.status(200).json(new apiResponse_1.default(true, 200, 'Project updated successfully', project));
 }));
 exports.updateProjectController = updateProjectController;
 // ==========================================================
@@ -114,7 +130,7 @@ exports.updateProjectController = updateProjectController;
 const deleteProjectController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     yield db_1.default.project.delete({ where: { id } });
-    res.status(200).json(new apiResponse_1.default(true, 200, "Project deleted successfully", null));
+    res.status(200).json(new apiResponse_1.default(true, 200, 'Project deleted successfully', null));
 }));
 exports.deleteProjectController = deleteProjectController;
 // ==========================================================
@@ -125,11 +141,11 @@ const addUserToProjectController = (0, asyncHandler_1.default)((req, res) => __a
     const { projectId, userId } = req.body;
     const userRole = (_a = req.user) === null || _a === void 0 ? void 0 : _a.role; // assuming you attach user info in middleware
     if (!projectId || !userId) {
-        throw new apiError_1.default(false, 400, "projectId and userId are required");
+        throw new apiError_1.default(false, 400, 'projectId and userId are required');
     }
     // Only admin or country_manager can assign users
-    if (userRole !== "admin" && userRole !== "country_manager") {
-        throw new apiError_1.default(false, 403, "Access denied: only admin or country manager can assign users to a project");
+    if (userRole !== 'admin' && userRole !== 'country_manager') {
+        throw new apiError_1.default(false, 403, 'Access denied: only admin or country manager can assign users to a project');
     }
     // Check project existence
     const project = yield db_1.default.project.findUnique({
@@ -137,15 +153,15 @@ const addUserToProjectController = (0, asyncHandler_1.default)((req, res) => __a
         include: { workers: true },
     });
     if (!project)
-        throw new apiError_1.default(false, 404, "Project not found");
+        throw new apiError_1.default(false, 404, 'Project not found');
     // Check user existence
     const user = yield db_1.default.user.findUnique({ where: { id: userId } });
     if (!user)
-        throw new apiError_1.default(false, 404, "User not found");
+        throw new apiError_1.default(false, 404, 'User not found');
     // Check if already assigned
     const alreadyAssigned = project.workers.some((worker) => worker.id === userId);
     if (alreadyAssigned) {
-        throw new apiError_1.default(false, 400, "User is already assigned to this project");
+        throw new apiError_1.default(false, 400, 'User is already assigned to this project');
     }
     // Add user to project workers
     const updatedProject = yield db_1.default.project.update({
@@ -157,6 +173,8 @@ const addUserToProjectController = (0, asyncHandler_1.default)((req, res) => __a
         },
         include: { workers: true },
     });
-    res.status(200).json(new apiResponse_1.default(true, 200, "User added to project successfully", updatedProject));
+    res
+        .status(200)
+        .json(new apiResponse_1.default(true, 200, 'User added to project successfully', updatedProject));
 }));
 exports.addUserToProjectController = addUserToProjectController;

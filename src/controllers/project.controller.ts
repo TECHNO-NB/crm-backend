@@ -1,19 +1,47 @@
 // @ts-nocheck
-import { Request, Response } from "express";
-import asyncHandler from "../utils/asyncHandler";
-import ApiError from "../utils/apiError";
-import prisma from "../DB/db";
-import ApiResponse from "../utils/apiResponse";
+import { Request, Response } from 'express';
+import asyncHandler from '../utils/asyncHandler';
+import ApiError from '../utils/apiError';
+import prisma from '../DB/db';
+import ApiResponse from '../utils/apiResponse';
+import { uploadToCloudinary } from '../utils/cloudinary';
 
-// ==========================================================
 // Create Project
-// ==========================================================
-
 const createProjectController = asyncHandler(async (req: Request, res: Response) => {
-  const { title, description, provinceId, managerId, status, startDate, endDate, budget, countryId } = req.body;
+  const {
+    title,
+    description,
+    provinceId,
+    managerId,
+    status,
+    startDate,
+    endDate,
+    budget,
+    countryId,
+    workers,
+  } = req.body;
 
   if (!title || !status || !countryId) {
-    throw new ApiError(false, 400, "Title, status, and countryId are required");
+    throw new ApiError(false, 400, 'Title, status, and countryId are required');
+  }
+
+  let documentUrls: string[] = [];
+
+  if (req.files && Array.isArray(req.files)) {
+    for (const file of req.files as Express.Multer.File[]) {
+      const uploadResult = await uploadToCloudinary(file);
+      documentUrls.push(uploadResult);
+    }
+  }
+
+  let workersToConnect = undefined;
+
+  if (workers) {
+    const workerArray = typeof workers === 'string' ? JSON.parse(workers) : workers;
+
+    if (Array.isArray(workerArray) && workerArray.length > 0) {
+      workersToConnect = workerArray.map((id) => ({ id }));
+    }
   }
 
   const project = await prisma.project.create({
@@ -27,10 +55,22 @@ const createProjectController = asyncHandler(async (req: Request, res: Response)
       endDate: endDate ? new Date(endDate) : undefined,
       budget: budget ? Number(budget) : undefined,
       countryId,
+      documents: documentUrls,
+
+      ...(workersToConnect && {
+        workers: {
+          connect: workersToConnect,
+        },
+      }),
+    },
+    include: {
+      workers: true,
+      manager: true,
+      province: true,
     },
   });
 
-  res.status(201).json(new ApiResponse(true, 201, "Project created successfully", project));
+  res.status(201).json(new ApiResponse(true, 201, 'Project created successfully', project));
 });
 
 // ==========================================================
@@ -42,8 +82,8 @@ const getAllProjectsController = asyncHandler(async (req: Request, res: Response
   const projects = await prisma.project.findMany({
     where: {
       // @ts-ignore
-      status: status ? String(status) : undefined,
-      managerId: managerId ? String(managerId) : undefined,
+       status: status ? String(status) : undefined,
+       managerId: managerId ? String(managerId) : undefined,
     },
     include: {
       manager: true,
@@ -55,7 +95,7 @@ const getAllProjectsController = asyncHandler(async (req: Request, res: Response
     },
   });
 
-  res.status(200).json(new ApiResponse(true, 200, "Projects fetched successfully", projects));
+  res.status(200).json(new ApiResponse(true, 200, 'Projects fetched successfully', projects));
 });
 
 // ==========================================================
@@ -76,9 +116,9 @@ const getProjectByIdController = asyncHandler(async (req: Request, res: Response
     },
   });
 
-  if (!project) throw new ApiError(false, 404, "Project not found");
+  if (!project) throw new ApiError(false, 404, 'Project not found');
 
-  res.status(200).json(new ApiResponse(true, 200, "Project fetched successfully", project));
+  res.status(200).json(new ApiResponse(true, 200, 'Project fetched successfully', project));
 });
 
 // ==========================================================
@@ -86,7 +126,8 @@ const getProjectByIdController = asyncHandler(async (req: Request, res: Response
 // ==========================================================
 const updateProjectController = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, description, provinceId, managerId, status, startDate, endDate, budget, spent } = req.body;
+  const { title, description, provinceId, managerId, status, startDate, endDate, budget, spent } =
+    req.body;
 
   const project = await prisma.project.update({
     where: { id },
@@ -103,7 +144,7 @@ const updateProjectController = asyncHandler(async (req: Request, res: Response)
     },
   });
 
-  res.status(200).json(new ApiResponse(true, 200, "Project updated successfully", project));
+  res.status(200).json(new ApiResponse(true, 200, 'Project updated successfully', project));
 });
 
 // ==========================================================
@@ -114,7 +155,7 @@ const deleteProjectController = asyncHandler(async (req: Request, res: Response)
 
   await prisma.project.delete({ where: { id } });
 
-  res.status(200).json(new ApiResponse(true, 200, "Project deleted successfully", null));
+  res.status(200).json(new ApiResponse(true, 200, 'Project deleted successfully', null));
 });
 
 // ==========================================================
@@ -125,12 +166,16 @@ const addUserToProjectController = asyncHandler(async (req: Request, res: Respon
   const userRole = req.user?.role; // assuming you attach user info in middleware
 
   if (!projectId || !userId) {
-    throw new ApiError(false, 400, "projectId and userId are required");
+    throw new ApiError(false, 400, 'projectId and userId are required');
   }
 
   // Only admin or country_manager can assign users
-  if (userRole !== "admin" && userRole !== "country_manager") {
-    throw new ApiError(false, 403, "Access denied: only admin or country manager can assign users to a project");
+  if (userRole !== 'admin' && userRole !== 'country_manager') {
+    throw new ApiError(
+      false,
+      403,
+      'Access denied: only admin or country manager can assign users to a project'
+    );
   }
 
   // Check project existence
@@ -139,16 +184,16 @@ const addUserToProjectController = asyncHandler(async (req: Request, res: Respon
     include: { workers: true },
   });
 
-  if (!project) throw new ApiError(false, 404, "Project not found");
+  if (!project) throw new ApiError(false, 404, 'Project not found');
 
   // Check user existence
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new ApiError(false, 404, "User not found");
+  if (!user) throw new ApiError(false, 404, 'User not found');
 
   // Check if already assigned
   const alreadyAssigned = project.workers.some((worker) => worker.id === userId);
   if (alreadyAssigned) {
-    throw new ApiError(false, 400, "User is already assigned to this project");
+    throw new ApiError(false, 400, 'User is already assigned to this project');
   }
 
   // Add user to project workers
@@ -162,7 +207,9 @@ const addUserToProjectController = asyncHandler(async (req: Request, res: Respon
     include: { workers: true },
   });
 
-  res.status(200).json(new ApiResponse(true, 200, "User added to project successfully", updatedProject));
+  res
+    .status(200)
+    .json(new ApiResponse(true, 200, 'User added to project successfully', updatedProject));
 });
 
 export {

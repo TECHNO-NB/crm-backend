@@ -20,6 +20,12 @@ enum UserRole {
   viewer
 }
 
+enum ApprovedStatus {
+  rejected
+  approved
+  pending
+}
+
 enum ProjectStatus {
   planned
   active
@@ -155,13 +161,14 @@ model School {
 
 // 5. Project
 model Project {
-  id          String        @id @default(uuid())
+  id          String         @id @default(uuid())
   title       String
+  approved    ApprovedStatus @default(pending)
   description String?
   provinceId  String?
-  province    Province?     @relation(fields: [provinceId], references: [id])
+  province    Province?      @relation(fields: [provinceId], references: [id])
   managerId   String?
-  manager     User?         @relation("ManagerProjects", fields: [managerId], references: [id])
+  manager     User?          @relation("ManagerProjects", fields: [managerId], references: [id])
   status      ProjectStatus
   startDate   DateTime?
   endDate     DateTime?

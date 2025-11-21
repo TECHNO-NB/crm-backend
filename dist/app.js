@@ -11,7 +11,6 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 const morgan_1 = __importDefault(require("morgan"));
-const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 exports.admin = firebase_admin_1.default;
 const errorHandler_1 = __importDefault(require("./helpers/errorHandler"));
@@ -41,19 +40,19 @@ app.use((0, cors_1.default)({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
 }));
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
 //  Rate Limiting
-const limiter = (0, express_rate_limit_1.default)({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 50, // max 50 requests
-    handler: (req, res) => {
-        console.log(`Rate limit hit`);
-        res.status(429).json({ message: 'Too many requests, slow down!' });
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: 1 * 60 * 1000, // 1 minute
+//   max: 50, // max 50 requests
+//   handler: (req, res) => {
+//     console.log(`Rate limit hit`);
+//     res.status(429).json({ message: 'Too many requests, slow down!' });
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
+// app.use(limiter);
 // 🧩 Global Middlewares
 app.use((0, cookie_parser_1.default)());
 app.use((0, helmet_1.default)());
