@@ -3,14 +3,9 @@ import asyncHandler from '../utils/asyncHandler';
 import ApiResponse from '../utils/apiResponse';
 import prisma from '../DB/db';
 
-/**
- * @desc Get overall financial dashboard data
- * @route GET /api/v1/financial/dashboard
- * @access Private (Admin, Chairman, Finance)
- */
 export const getFinancialDashboardController = asyncHandler(
   async (req: Request, res: Response): Promise<any> => {
-    console.log("HIT SERVER FINANCIAL DASHBOARD");
+   
 
     // === 1️⃣ Aggregate Totals ===
     const [totalIncome, totalExpenses] = await Promise.all([

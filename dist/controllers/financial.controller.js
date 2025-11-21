@@ -16,13 +16,7 @@ exports.getFinancialDashboardController = void 0;
 const asyncHandler_1 = __importDefault(require("../utils/asyncHandler"));
 const apiResponse_1 = __importDefault(require("../utils/apiResponse"));
 const db_1 = __importDefault(require("../DB/db"));
-/**
- * @desc Get overall financial dashboard data
- * @route GET /api/v1/financial/dashboard
- * @access Private (Admin, Chairman, Finance)
- */
 exports.getFinancialDashboardController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("HIT SERVER FINANCIAL DASHBOARD");
     // === 1️⃣ Aggregate Totals ===
     const [totalIncome, totalExpenses] = yield Promise.all([
         db_1.default.donation.aggregate({
