@@ -69,6 +69,48 @@ enum ExpenseCategory {
   project
 }
 
+enum PersonType {
+  individual
+  organization
+  government
+}
+
+enum LegalCaseStatus {
+  open
+  in_progress
+  on_hold
+  escalated
+  won
+  lost
+  settled
+  closed
+}
+
+enum LegalCategory {
+  land
+  financial
+  employment
+  fraud
+  harassment
+  property
+  organizational
+  dispute
+  compliance
+  other
+}
+
+enum LegalPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum NoteVisibility {
+  internal
+  public
+}
+
 // ====================== MODELS ======================
 
 // 1. User
@@ -125,6 +167,7 @@ model Country {
   provinces   Province[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  Expense     Expense[]
 }
 
 // 3. Province
@@ -228,7 +271,9 @@ model Expense {
   approvedById  String?
   approvedBy    User?           @relation("ApprovedExpenses", fields: [approvedById], references: [id])
   status        ExpenseStatus
-  invoiceUrl    String?
+  invoiceUrl    String[]
+  countryId     String
+  country       Country         @relation(fields: [countryId], references: [id])
   date          DateTime?
   notes         String?
   createdAt     DateTime        @default(now())
@@ -334,4 +379,49 @@ model Ticket {
   updatedAt   DateTime @updatedAt
 
   @@index([status])
+}
+
+model LegalCase {
+  id          String          @id @default(uuid())
+  caseNumber  String?         @unique
+  title       String
+  description String?
+  category    LegalCategory
+  priority    LegalPriority   @default(medium)
+  status      LegalCaseStatus @default(open)
+
+  // Parties (User instead of LegalPerson)
+  applicantId String?
+  applicant   User?   @relation("ApplicantCases", fields: [applicantId], references: [id])
+
+  respondentId String?
+  respondent   User?   @relation("RespondentCases", fields: [respondentId], references: [id])
+
+  // Assigned Legal Officer / Lawyer
+  assignedToId String?
+  assignedTo   User?   @relation(fields: [assignedToId], references: [id])
+
+  // Location
+  countryId String
+  country   Country @relation(fields: [countryId], references: [id])
+
+  provinceId String?
+  province   Province? @relation(fields: [provinceId], references: [id])
+
+  // Timeline
+  filingDate   DateTime?
+  hearingDates DateTime[]
+  closedDate   DateTime?
+
+  // Attachments
+  documents String[]
+  notes     String[]
+  logs      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([assignedToId])
 }

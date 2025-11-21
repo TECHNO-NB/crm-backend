@@ -9,7 +9,7 @@ const authMiddleware_js_1 = require("../middlewares/authMiddleware.js");
 const multerMiddleware_1 = __importDefault(require("../middlewares/multerMiddleware"));
 const router = (0, express_1.Router)();
 // All routes require authentication
-router.use(authMiddleware_js_1.jwtVerify);
+// router.use(jwtVerify);
 // Public route: fetch all projects
 router.get('/', project_controller_1.getAllProjectsController);
 router.get('/:id', project_controller_1.getProjectByIdController);

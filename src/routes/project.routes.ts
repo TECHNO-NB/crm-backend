@@ -12,7 +12,7 @@ import upload from '../middlewares/multerMiddleware';
 const router = Router();
 
 // All routes require authentication
-router.use(jwtVerify);
+// router.use(jwtVerify);
 
 // Public route: fetch all projects
 router.get('/', getAllProjectsController);

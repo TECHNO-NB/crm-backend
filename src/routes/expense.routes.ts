@@ -11,7 +11,7 @@ import { jwtVerify, authorizeRoles } from "../middlewares/authMiddleware.js";
 const router = Router();
 
 // All routes require authentication
-router.use(jwtVerify);
+// router.use(jwtVerify);
 
 // Public routes (any authenticated user)
 router.get("/", getAllExpensesController);

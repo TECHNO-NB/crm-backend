@@ -5,7 +5,7 @@ const expense_controller_1 = require("../controllers/expense.controller");
 const authMiddleware_js_1 = require("../middlewares/authMiddleware.js");
 const router = (0, express_1.Router)();
 // All routes require authentication
-router.use(authMiddleware_js_1.jwtVerify);
+// router.use(jwtVerify);
 // Public routes (any authenticated user)
 router.get("/", expense_controller_1.getAllExpensesController);
 router.get("/:id", expense_controller_1.getExpenseByIdController);
