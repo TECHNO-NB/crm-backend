@@ -6,7 +6,7 @@ import {
   updateProjectController,
   deleteProjectController,
   updateStatusProjectController,
-} from '../controllers/project.controller';
+} from '../controllers/countrymanager.projects.controller';
 import { jwtVerify, authorizeRoles } from '../middlewares/authMiddleware.js';
 import upload from '../middlewares/multerMiddleware';
 
@@ -16,7 +16,7 @@ const router = Router();
  router.use(jwtVerify);
 
 // Public route: fetch all projects
-router.get('/', getAllProjectsController);
+router.get('/:countryId',authorizeRoles('country_manager' ), getAllProjectsController);
 router.get('/:id', getProjectByIdController);
 
 // Restricted routes: Admin and Country Manager

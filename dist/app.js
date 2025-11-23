@@ -32,6 +32,11 @@ const financial_routes_js_1 = __importDefault(require("./routes/financial.routes
 const financedashboard_routes_js_1 = __importDefault(require("./routes/financedashboard.routes.js"));
 const countrymanager_dashboard_routes_js_1 = __importDefault(require("./routes/countrymanager.dashboard.routes.js"));
 const countrymanager_user_routes_js_1 = __importDefault(require("./routes/countrymanager.user.routes.js"));
+const legal_routes_js_1 = __importDefault(require("./routes/legal.routes.js"));
+const ticket_routes_js_1 = __importDefault(require("./routes/ticket.routes.js"));
+const countrymanager_projects_routes_js_1 = __importDefault(require("./routes/countrymanager.projects.routes.js"));
+const countrymanager_financedashboard_routes_js_1 = __importDefault(require("./routes/countrymanager.financedashboard.routes.js"));
+const countrymanager_financial_routes_js_1 = __importDefault(require("./routes/countrymanager.financial.routes.js"));
 const app = (0, express_1.default)();
 exports.app = app;
 // 🌐 CORS Configuration
@@ -83,6 +88,11 @@ app.use('/api/v1/schools', school_routes_1.default);
 app.use('/api/v1/country', country_routes_js_1.default);
 app.use('/api/v1/dashboard', dashboard_routes_js_1.default);
 app.use('/api/v1/financial', financial_routes_js_1.default);
+app.use('/api/v1/countrymanagerfinancial', countrymanager_financial_routes_js_1.default);
 app.use('/api/v1/countrymanager', countrymanager_dashboard_routes_js_1.default);
 app.use('/api/v1/financedashboard', financedashboard_routes_js_1.default);
+app.use('/api/v1/managerfinancedashboard', countrymanager_financedashboard_routes_js_1.default);
 app.use('/api/v1/countrymanageruser', countrymanager_user_routes_js_1.default);
+app.use('/api/v1/legal', legal_routes_js_1.default);
+app.use('/api/v1/tickets', ticket_routes_js_1.default);
+app.use('/api/v1/managerprojects', countrymanager_projects_routes_js_1.default);

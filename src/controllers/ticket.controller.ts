@@ -1,54 +1,130 @@
-// @ts-nocheck
+// controllers/ticket.controller.ts
 import { Request, Response } from "express";
-import asyncHandler from "../utils/asyncHandler";
-import ApiError from "../utils/apiError";
 import prisma from "../DB/db";
+import asyncHandler from "../utils/asyncHandler";
 import ApiResponse from "../utils/apiResponse";
+import { uploadToCloudinary, deleteCloudinaryImage } from "../utils/cloudinary";
 
-// Fetch all tickets
-const getAllTicketsController = asyncHandler(async (req: Request, res: Response) => {
-  const tickets = await prisma.ticket.findMany({ include: { requester: true, assignee: true }, orderBy: { createdAt: "desc" } });
-  res.status(200).json(new ApiResponse(true, 200, "Tickets fetched successfully", tickets));
+// 📌 1. Get all tickets
+export const getTickets = asyncHandler(async (req: Request, res: Response) => {
+  const tickets = await prisma.ticket.findMany({
+    include: {
+      requester: true,
+      assignee: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json(new ApiResponse(true,200,  "Tickets fetched successfully",tickets,));
 });
 
-// Fetch single ticket
-const getTicketByIdController = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const ticket = await prisma.ticket.findUnique({ where: { id }, include: { requester: true, assignee: true } });
-  if (!ticket) throw new ApiError(false, 404, "Ticket not found");
-  res.status(200).json(new ApiResponse(true, 200, "Ticket fetched successfully", ticket));
-});
+// 📌 2. Create ticket
+export const createTicket = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { title, description, requesterId, assigneeId, priority } = req.body;
 
-// Create ticket
-const createTicketController = asyncHandler(async (req: Request, res: Response) => {
-  const { title, description, requesterId, assigneeId, priority, status, logs, attachments } = req.body;
-  if (!title || !status) throw new ApiError(false, 400, "Title and status are required");
+    let uploadedFiles: string[] = [];
 
-  const ticket = await prisma.ticket.create({ data: { title, description, requesterId, assigneeId, priority, status, logs, attachments } });
-  res.status(201).json(new ApiResponse(true, 201, "Ticket created successfully", ticket));
-});
+    // Upload attachments if any
+    if (req.files) {
+      const files = req.files as Express.Multer.File[];
 
-// Update ticket
-const updateTicketController = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const data = req.body;
+      for (const file of files) {
+        const upload = await uploadToCloudinary(file.path);
+        uploadedFiles.push(upload);
+      }
+    }
 
-  const existingTicket = await prisma.ticket.findUnique({ where: { id } });
-  if (!existingTicket) throw new ApiError(false, 404, "Ticket not found");
+    const ticket = await prisma.ticket.create({
+      data: {
+        title,
+        description,
+        requesterId,
+        assigneeId,
+        priority,
+        status: "open",
+        attachments: uploadedFiles,
+        logs: [{ message: "Ticket created", at: new Date() }],
+      },
+    });
 
-  const updatedTicket = await prisma.ticket.update({ where: { id }, data });
-  res.status(200).json(new ApiResponse(true, 200, "Ticket updated successfully", updatedTicket));
-});
+    res.json(new ApiResponse(true,201,  "Ticket created successfully",ticket));
+  }
+);
 
-// Delete ticket
-const deleteTicketController = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+// 📌 3. Update ticket
+export const updateTicket = asyncHandler(
+  async (req: Request, res: Response):Promise<any> => {
+    const { title, description, requesterId, assigneeId, priority, status } =
+      req.body;
 
-  const existingTicket = await prisma.ticket.findUnique({ where: { id } });
-  if (!existingTicket) throw new ApiError(false, 404, "Ticket not found");
+    const ticketId = req.params.id;
 
-  await prisma.ticket.delete({ where: { id } });
-  res.status(200).json(new ApiResponse(true, 200, "Ticket deleted successfully"));
-});
+    // Find existing ticket
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
 
-export { getAllTicketsController, getTicketByIdController, createTicketController, updateTicketController, deleteTicketController };
+    if (!ticket)
+      return res
+        .status(404)
+        .json(new ApiResponse(false,404, "Ticket not found"));
+
+    let newFiles: string[] = ticket.attachments;
+
+    // If new attachments are uploaded
+    if (req.files) {
+      const files = req.files as Express.Multer.File[];
+
+      for (const file of files) {
+        const uploaded = await uploadToCloudinary(file.path);
+        newFiles.push(uploaded);
+      }
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        title,
+        description,
+        requesterId,
+        assigneeId,
+        priority,
+        status,
+        attachments: newFiles,
+        logs: [
+            { message: "Ticket updated", at: new Date() },
+        ],
+      },
+    });
+
+    res.json(new ApiResponse(true,200, "Ticket updated successfully",updated));
+  }
+);
+
+// 📌 4. Delete ticket
+export const deleteTicket = asyncHandler(
+  async (req: Request, res: Response):Promise<any> => {
+    const ticketId = req.params.id;
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket)
+      return res
+        .status(404)
+        .json(new ApiResponse(false,404, "Ticket not found"));
+
+    // Delete attachments from Cloudinary
+    for (const file of ticket.attachments) {
+      await deleteCloudinaryImage(file);
+    }
+
+    await prisma.ticket.delete({
+      where: { id: ticketId },
+    });
+
+    res.json(new ApiResponse(true,200, "Ticket deleted successfully"));
+  }
+);

@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const countrymanager_projects_controller_1 = require("../controllers/countrymanager.projects.controller");
+const authMiddleware_js_1 = require("../middlewares/authMiddleware.js");
+const multerMiddleware_1 = __importDefault(require("../middlewares/multerMiddleware"));
+const router = (0, express_1.Router)();
+// All routes require authentication
+router.use(authMiddleware_js_1.jwtVerify);
+// Public route: fetch all projects
+router.get('/:countryId', (0, authMiddleware_js_1.authorizeRoles)('country_manager'), countrymanager_projects_controller_1.getAllProjectsController);
+router.get('/:id', countrymanager_projects_controller_1.getProjectByIdController);
+// Restricted routes: Admin and Country Manager
+router.post('/', multerMiddleware_1.default.array('documents', 10), 
+// authorizeRoles('admin', 'finance', 'chairmain', 'country_chairman'),
+countrymanager_projects_controller_1.createProjectController);
+router.put('/update/:id', (0, authMiddleware_js_1.authorizeRoles)('admin'), countrymanager_projects_controller_1.updateStatusProjectController);
+router.put('/:id', (0, authMiddleware_js_1.authorizeRoles)('admin', 'country_manager'), countrymanager_projects_controller_1.updateProjectController);
+router.delete('/:id', (0, authMiddleware_js_1.authorizeRoles)('admin'), countrymanager_projects_controller_1.deleteProjectController);
+exports.default = router;

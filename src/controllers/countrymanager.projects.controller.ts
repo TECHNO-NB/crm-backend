@@ -77,20 +77,22 @@ const createProjectController = asyncHandler(async (req: Request, res: Response)
 // Get All Projects
 // ==========================================================
 const getAllProjectsController = asyncHandler(async (req: Request, res: Response) => {
-  const { status, managerId } = req.query;
+  //   userid
+  // @ts-ignore
+  const { id } = req.user;
+  const { countryId } = req.params;
+  const approved = 'approved';
 
   const projects = await prisma.project.findMany({
     where: {
       // @ts-ignore
-      status: status ? String(status) : undefined,
-      managerId: managerId ? String(managerId) : undefined,
+      approved: approved,
+      countryId: countryId,
     },
     include: {
       manager: true,
       province: true,
       country: true,
-      donations: true,
-      expenses: true,
       workers: true, // Include assigned users
     },
   });
@@ -236,5 +238,5 @@ export {
   updateProjectController,
   deleteProjectController,
   addUserToProjectController,
-  updateStatusProjectController
+  updateStatusProjectController,
 };

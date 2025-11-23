@@ -27,6 +27,17 @@ import financialRoutes from './routes/financial.routes.js';
 import financialdashboardRoutes from './routes/financedashboard.routes.js';
 import countrymanagerdashboardRoutes from './routes/countrymanager.dashboard.routes.js';
 import countrymanageruserRoutes from './routes/countrymanager.user.routes.js';
+import legalRoutes from './routes/legal.routes.js';
+import ticketRoutes from './routes/ticket.routes.js';
+import managerProjectsRoutes from './routes/countrymanager.projects.routes.js';
+import managerFinancialdashboardRoutes from './routes/countrymanager.financedashboard.routes.js';
+import countrymanagerfinancialRoutes from './routes/countrymanager.financial.routes.js';
+
+
+
+
+
+
 
 const app = express();
 
@@ -86,8 +97,17 @@ app.use('/api/v1/schools', schoolRoutes);
 app.use('/api/v1/country', countryRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/financial', financialRoutes);
+app.use('/api/v1/countrymanagerfinancial', countrymanagerfinancialRoutes);
+
 app.use('/api/v1/countrymanager', countrymanagerdashboardRoutes);
 app.use('/api/v1/financedashboard', financialdashboardRoutes);
+app.use('/api/v1/managerfinancedashboard', managerFinancialdashboardRoutes);
 app.use('/api/v1/countrymanageruser', countrymanageruserRoutes);
+app.use('/api/v1/legal', legalRoutes);
+app.use('/api/v1/tickets', ticketRoutes);
+app.use('/api/v1/managerprojects', managerProjectsRoutes);
+
+
+
 
 export { app, admin };

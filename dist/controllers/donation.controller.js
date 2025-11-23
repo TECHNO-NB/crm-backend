@@ -17,21 +17,15 @@ const db_1 = __importDefault(require("../DB/db"));
 const asyncHandler_1 = __importDefault(require("../utils/asyncHandler"));
 const apiError_1 = __importDefault(require("../utils/apiError"));
 const apiResponse_1 = __importDefault(require("../utils/apiResponse"));
+const cloudinary_1 = require("../utils/cloudinary");
 // Fetch all donations with optional filters
 const getAllDonations = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { projectId, status, donorEmail } = req.query;
     const donations = yield db_1.default.donation.findMany({
-        where: {
-            projectId: projectId ? String(projectId) : undefined,
-            // @ts-ignore
-            status: status ? String(status) : undefined,
-            donorEmail: donorEmail ? String(donorEmail) : undefined,
-        },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
     });
     return res
         .status(200)
-        .json(new apiResponse_1.default(true, 200, "Fetched all donations successfully", donations));
+        .json(new apiResponse_1.default(true, 200, 'Fetched all donations successfully', donations));
 }));
 exports.getAllDonations = getAllDonations;
 // Fetch single donation by ID
@@ -39,36 +33,39 @@ const getDonationById = (0, asyncHandler_1.default)((req, res) => __awaiter(void
     const { id } = req.params;
     const donation = yield db_1.default.donation.findUnique({ where: { id } });
     if (!donation)
-        throw new apiError_1.default(false, 404, "Donation not found");
+        throw new apiError_1.default(false, 404, 'Donation not found');
     return res
         .status(200)
-        .json(new apiResponse_1.default(true, 200, "Fetched donation successfully", donation));
+        .json(new apiResponse_1.default(true, 200, 'Fetched donation successfully', donation));
 }));
 exports.getDonationById = getDonationById;
 // Create a new donation
 const createDonation = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { donorName, donorEmail, donorPhone, amount, method, status, receivedAt, projectId, receiptUrl, note, invoiceNo, } = req.body;
-    if (!donorName || !amount || !method || !status) {
-        throw new apiError_1.default(false, 400, "Please provide required fields");
+    var _a;
+    const { donorName, donorEmail, donorPhone, amount, receivedAt, invoiceNo, note, projectId, countryId } = req.body;
+    // Only amount is required now
+    if (!amount) {
+        throw new apiError_1.default(false, 400, 'Please provide the amount');
+    }
+    let receiptUrl;
+    if ((_a = req.file) === null || _a === void 0 ? void 0 : _a.path) {
+        receiptUrl = yield (0, cloudinary_1.uploadToCloudinary)(req.file.path);
     }
     const donation = yield db_1.default.donation.create({
         data: {
-            donorName,
-            donorEmail,
-            donorPhone,
+            donorName: donorName || null,
+            donorEmail: donorEmail || null,
+            donorPhone: donorPhone || null,
             amount: Number(amount),
-            method,
-            status,
             receivedAt: receivedAt ? new Date(receivedAt) : undefined,
-            projectId,
+            projectId: projectId || undefined,
             receiptUrl,
-            note,
-            invoiceNo,
+            note: note || null,
+            countryId,
+            invoiceNo: invoiceNo || null,
         },
     });
-    return res
-        .status(201)
-        .json(new apiResponse_1.default(true, 201, "Donation created successfully", donation));
+    return res.status(201).json(new apiResponse_1.default(true, 201, 'Donation created successfully', donation));
 }));
 exports.createDonation = createDonation;
 // Update donation
@@ -77,7 +74,7 @@ const updateDonation = (0, asyncHandler_1.default)((req, res) => __awaiter(void 
     const { donorName, donorEmail, donorPhone, amount, method, status, receivedAt, projectId, receiptUrl, note, invoiceNo, } = req.body;
     const donation = yield db_1.default.donation.findUnique({ where: { id } });
     if (!donation)
-        throw new apiError_1.default(false, 404, "Donation not found");
+        throw new apiError_1.default(false, 404, 'Donation not found');
     const updatedDonation = yield db_1.default.donation.update({
         where: { id },
         data: {
@@ -96,7 +93,7 @@ const updateDonation = (0, asyncHandler_1.default)((req, res) => __awaiter(void 
     });
     return res
         .status(200)
-        .json(new apiResponse_1.default(true, 200, "Donation updated successfully", updatedDonation));
+        .json(new apiResponse_1.default(true, 200, 'Donation updated successfully', updatedDonation));
 }));
 exports.updateDonation = updateDonation;
 // Delete donation
@@ -104,10 +101,8 @@ const deleteDonation = (0, asyncHandler_1.default)((req, res) => __awaiter(void 
     const { id } = req.params;
     const donation = yield db_1.default.donation.findUnique({ where: { id } });
     if (!donation)
-        throw new apiError_1.default(false, 404, "Donation not found");
+        throw new apiError_1.default(false, 404, 'Donation not found');
     yield db_1.default.donation.delete({ where: { id } });
-    return res
-        .status(200)
-        .json(new apiResponse_1.default(true, 200, "Donation deleted successfully", null));
+    return res.status(200).json(new apiResponse_1.default(true, 200, 'Donation deleted successfully', null));
 }));
 exports.deleteDonation = deleteDonation;

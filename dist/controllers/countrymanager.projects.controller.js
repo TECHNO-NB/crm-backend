@@ -61,19 +61,21 @@ exports.createProjectController = createProjectController;
 // Get All Projects
 // ==========================================================
 const getAllProjectsController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { status, managerId } = req.query;
+    //   userid
+    // @ts-ignore
+    const { id } = req.user;
+    const { countryId } = req.params;
+    const approved = 'approved';
     const projects = yield db_1.default.project.findMany({
         where: {
             // @ts-ignore
-            status: status ? String(status) : undefined,
-            managerId: managerId ? String(managerId) : undefined,
+            approved: approved,
+            countryId: countryId,
         },
         include: {
             manager: true,
             province: true,
             country: true,
-            donations: true,
-            expenses: true,
             workers: true, // Include assigned users
         },
     });

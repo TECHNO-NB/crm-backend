@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ====================== ENUMS ======================
+
 enum UserRole {
   chairman
   country_manager
@@ -132,56 +134,64 @@ model User {
   metadata     Json?
   address      String
 
-  // 🔧 Relation to Project (assigned project)
-  projectId String?
-  project   Project? @relation("UserProject", fields: [projectId], references: [id])
-
-  // 🔧 Managed projects (one-to-many)
-  managedProjects Project[] @relation("ManagerProjects")
-
-  // 🔧 New: Reverse relation for Project.workers
+  // Project Relations
+  projectId        String?
+  project          Project?  @relation("UserProject", fields: [projectId], references: [id])
+  managedProjects  Project[] @relation("ManagerProjects")
   assignedProjects Project[] @relation("ProjectWorkers")
 
-  submittedExpenses Expense[]      @relation("SubmittedExpenses")
-  approvedExpenses  Expense[]      @relation("ApprovedExpenses")
-  auditLogs         AuditLog[]
-  notifications     Notification[]
-  messagesSent      Message[]      @relation("MessagesFrom")
-  messagesReceived  Message[]      @relation("MessagesTo")
-  eventsOrganized   Event[]        @relation("OrganizerEvents")
-  assets            Asset[]
-  ticketsRequested  Ticket[]       @relation("RequestedTickets")
-  ticketsAssigned   Ticket[]       @relation("AssignedTickets")
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  // Transaction Relations
+  submittedExpenses Expense[] @relation("SubmittedExpenses")
+  approvedExpenses  Expense[] @relation("ApprovedExpenses")
+
+  // Log & Communication Relations
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  messagesSent     Message[]      @relation("MessagesFrom")
+  messagesReceived Message[]      @relation("MessagesTo")
+  eventsOrganized  Event[]        @relation("OrganizerEvents")
+  assets           Asset[]
+  ticketsRequested Ticket[]       @relation("RequestedTickets")
+  ticketsAssigned  Ticket[]       @relation("AssignedTickets")
+
+  // Legal Case Reverse Relations (FIXED)
+  applicantCases     LegalCase[] @relation("ApplicantCases")
+  respondentCases    LegalCase[] @relation("RespondentCases")
+  assignedLegalCases LegalCase[] @relation("AssignedLegalCases")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // 2. Country 
 model Country {
-  id          String     @id @default(uuid())
+  id          String      @id @default(uuid())
   countryName String
   code        String
   users       User[]
   schools     School[]
   projects    Project[]
   provinces   Province[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  legalCases  LegalCase[] // Correct reverse relation
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   Expense     Expense[]
+  donations   Donation[]
 }
 
 // 3. Province
 model Province {
-  id        String    @id @default(uuid())
-  name      String
-  code      String
-  users     User[]
-  countryId String
-  country   Country   @relation(fields: [countryId], references: [id])
-  schools   School[]
-  projects  Project[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id         String      @id @default(uuid())
+  name       String
+  code       String
+  users      User[]
+  countryId  String
+  country    Country     @relation(fields: [countryId], references: [id])
+  schools    School[]
+  projects   Project[]
+  legalCases LegalCase[] // Correct reverse relation
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 // 4. School
@@ -242,9 +252,11 @@ model Donation {
   donorName  String
   donorEmail String?
   donorPhone String?
+  countryId  String
+  country    Country        @relation(fields: [countryId], references: [id])
   amount     Float
-  method     DonationMethod
-  status     DonationStatus
+  method     DonationMethod @default(cash)
+  status     DonationStatus @default(completed)
   receivedAt DateTime?
   projectId  String?
   project    Project?       @relation(fields: [projectId], references: [id])
@@ -381,6 +393,7 @@ model Ticket {
   @@index([status])
 }
 
+// 14. LegalCase
 model LegalCase {
   id          String          @id @default(uuid())
   caseNumber  String?         @unique
@@ -390,7 +403,7 @@ model LegalCase {
   priority    LegalPriority   @default(medium)
   status      LegalCaseStatus @default(open)
 
-  // Parties (User instead of LegalPerson)
+  // Parties (User relations, using explicit names)
   applicantId String?
   applicant   User?   @relation("ApplicantCases", fields: [applicantId], references: [id])
 
@@ -399,9 +412,9 @@ model LegalCase {
 
   // Assigned Legal Officer / Lawyer
   assignedToId String?
-  assignedTo   User?   @relation(fields: [assignedToId], references: [id])
+  assignedTo   User?   @relation("AssignedLegalCases", fields: [assignedToId], references: [id])
 
-  // Location
+  // Location (Unnamed relations, reverse fields handled in Country/Province)
   countryId String
   country   Country @relation(fields: [countryId], references: [id])
 

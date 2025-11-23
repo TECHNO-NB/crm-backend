@@ -94,7 +94,7 @@ export const getDashboardReportController = asyncHandler(
         projectsByStatus,
         totalDonation: totalDonationStats._sum.amount || 0,
         totalDonationsCount: totalDonationStats._count._all,
-        expenseByStatus,
+         expenseByStatus,
         activeVolunteers,
         totalCountries,
         totalProvinces,
