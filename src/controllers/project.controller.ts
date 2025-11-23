@@ -124,12 +124,47 @@ const getProjectByIdController = asyncHandler(async (req: Request, res: Response
 // ==========================================================
 // Update Project
 // ==========================================================
+// Update Project (matching EditProjectModal)
 const updateProjectController = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { title, description, provinceId, managerId, status, startDate, endDate, budget, spent } =
-    req.body;
+  const {
+    title,
+    description,
+    provinceId,
+    managerId,
+    status,
+    startDate,
+    endDate,
+    budget,
+    spent,
+    workers,
+    existingDocs,
+  } = req.body;
 
-  const project = await prisma.project.update({
+  // Handle documents upload
+  let newDocuments: string[] = [];
+  if (req.files && Array.isArray(req.files)) {
+    for (const file of req.files as Express.Multer.File[]) {
+      const uploadedUrl = await uploadToCloudinary(file.path);
+      newDocuments.push(uploadedUrl);
+    }
+  }
+
+  // Merge existingDocs and newDocuments
+  const finalDocuments = Array.isArray(existingDocs)
+    ? [...existingDocs, ...newDocuments]
+    : [...newDocuments];
+
+  // Handle workers array
+  let workersToConnect = undefined;
+  if (workers) {
+    const workerArray = typeof workers === "string" ? JSON.parse(workers) : workers;
+    if (Array.isArray(workerArray) && workerArray.length > 0) {
+      workersToConnect = workerArray.map((id) => ({ id }));
+    }
+  }
+
+  const updatedProject = await prisma.project.update({
     where: { id },
     data: {
       title,
@@ -141,11 +176,27 @@ const updateProjectController = asyncHandler(async (req: Request, res: Response)
       endDate: endDate ? new Date(endDate) : undefined,
       budget: budget ? Number(budget) : undefined,
       spent: spent ? Number(spent) : undefined,
+      documents: finalDocuments,
+
+      ...(workersToConnect && {
+        workers: {
+          set: workersToConnect, // Replace old workers with new ones
+        },
+      }),
+    },
+    include: {
+      workers: true,
+      manager: true,
+      province: true,
+      country: true,
     },
   });
 
-  res.status(200).json(new ApiResponse(true, 200, 'Project updated successfully', project));
+  res
+    .status(200)
+    .json(new ApiResponse(true, 200, "Project updated successfully", updatedProject));
 });
+
 
 // ==========================================================
 // Update Project Status Or review Project

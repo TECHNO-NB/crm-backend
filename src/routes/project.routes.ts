@@ -27,7 +27,7 @@ router.post(
   createProjectController
 );
 router.put('/update/:id', authorizeRoles('admin', ), updateStatusProjectController);
-router.put('/:id', authorizeRoles('admin', 'country_manager'), updateProjectController);
+router.put('/:id',  upload.array('documents', 10), authorizeRoles('admin', 'country_manager'), updateProjectController);
 router.delete('/:id', authorizeRoles('admin'), deleteProjectController);
 
 export default router;

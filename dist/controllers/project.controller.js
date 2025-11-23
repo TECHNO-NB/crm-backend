@@ -104,24 +104,51 @@ exports.getProjectByIdController = getProjectByIdController;
 // ==========================================================
 // Update Project
 // ==========================================================
+// Update Project (matching EditProjectModal)
 const updateProjectController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const { title, description, provinceId, managerId, status, startDate, endDate, budget, spent } = req.body;
-    const project = yield db_1.default.project.update({
+    const { title, description, provinceId, managerId, status, startDate, endDate, budget, spent, workers, existingDocs, } = req.body;
+    // Handle documents upload
+    let newDocuments = [];
+    if (req.files && Array.isArray(req.files)) {
+        for (const file of req.files) {
+            const uploadedUrl = yield (0, cloudinary_1.uploadToCloudinary)(file.path);
+            newDocuments.push(uploadedUrl);
+        }
+    }
+    // Merge existingDocs and newDocuments
+    const finalDocuments = Array.isArray(existingDocs)
+        ? [...existingDocs, ...newDocuments]
+        : [...newDocuments];
+    // Handle workers array
+    let workersToConnect = undefined;
+    if (workers) {
+        const workerArray = typeof workers === "string" ? JSON.parse(workers) : workers;
+        if (Array.isArray(workerArray) && workerArray.length > 0) {
+            workersToConnect = workerArray.map((id) => ({ id }));
+        }
+    }
+    const updatedProject = yield db_1.default.project.update({
         where: { id },
-        data: {
-            title,
+        data: Object.assign({ title,
             description,
             provinceId,
             managerId,
-            status,
-            startDate: startDate ? new Date(startDate) : undefined,
-            endDate: endDate ? new Date(endDate) : undefined,
-            budget: budget ? Number(budget) : undefined,
-            spent: spent ? Number(spent) : undefined,
+            status, startDate: startDate ? new Date(startDate) : undefined, endDate: endDate ? new Date(endDate) : undefined, budget: budget ? Number(budget) : undefined, spent: spent ? Number(spent) : undefined, documents: finalDocuments }, (workersToConnect && {
+            workers: {
+                set: workersToConnect, // Replace old workers with new ones
+            },
+        })),
+        include: {
+            workers: true,
+            manager: true,
+            province: true,
+            country: true,
         },
     });
-    res.status(200).json(new apiResponse_1.default(true, 200, 'Project updated successfully', project));
+    res
+        .status(200)
+        .json(new apiResponse_1.default(true, 200, "Project updated successfully", updatedProject));
 }));
 exports.updateProjectController = updateProjectController;
 // ==========================================================

@@ -18,6 +18,6 @@ router.post('/', multerMiddleware_1.default.array('documents', 10),
 // authorizeRoles('admin', 'finance', 'chairmain', 'country_chairman'),
 project_controller_1.createProjectController);
 router.put('/update/:id', (0, authMiddleware_js_1.authorizeRoles)('admin'), project_controller_1.updateStatusProjectController);
-router.put('/:id', (0, authMiddleware_js_1.authorizeRoles)('admin', 'country_manager'), project_controller_1.updateProjectController);
+router.put('/:id', multerMiddleware_1.default.array('documents', 10), (0, authMiddleware_js_1.authorizeRoles)('admin', 'country_manager'), project_controller_1.updateProjectController);
 router.delete('/:id', (0, authMiddleware_js_1.authorizeRoles)('admin'), project_controller_1.deleteProjectController);
 exports.default = router;
