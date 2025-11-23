@@ -11,7 +11,7 @@ const router = (0, express_1.Router)();
 // All routes require authentication
 router.use(authMiddleware_js_1.jwtVerify);
 // Public route: fetch all projects
-router.get('/:countryId', (0, authMiddleware_js_1.authorizeRoles)('country_manager'), countrymanager_projects_controller_1.getAllProjectsController);
+router.get('/:countryId', (0, authMiddleware_js_1.authorizeRoles)('country_manager', 'finance'), countrymanager_projects_controller_1.getAllProjectsController);
 router.get('/:id', countrymanager_projects_controller_1.getProjectByIdController);
 // Restricted routes: Admin and Country Manager
 router.post('/', multerMiddleware_1.default.array('documents', 10), 

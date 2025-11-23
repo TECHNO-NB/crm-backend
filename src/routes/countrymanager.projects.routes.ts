@@ -16,7 +16,7 @@ const router = Router();
  router.use(jwtVerify);
 
 // Public route: fetch all projects
-router.get('/:countryId',authorizeRoles('country_manager' ), getAllProjectsController);
+router.get('/:countryId',authorizeRoles('country_manager','finance' ), getAllProjectsController);
 router.get('/:id', getProjectByIdController);
 
 // Restricted routes: Admin and Country Manager
