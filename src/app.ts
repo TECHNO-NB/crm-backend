@@ -69,7 +69,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express.static('./public'));
 
 // 🧯 Error Handler Middleware
-app.use(errorHandler);
+// app.use(errorHandler);
 
 // 🩵 Health Check Route
 app.get('/', (req, res) => {

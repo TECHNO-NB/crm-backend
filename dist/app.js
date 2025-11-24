@@ -13,7 +13,6 @@ const compression_1 = __importDefault(require("compression"));
 const morgan_1 = __importDefault(require("morgan"));
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 exports.admin = firebase_admin_1.default;
-const errorHandler_1 = __importDefault(require("./helpers/errorHandler"));
 // Import Routes
 const auth_routes_js_1 = __importDefault(require("./routes/auth.routes.js"));
 const asset_routes_js_1 = __importDefault(require("./routes/asset.routes.js"));
@@ -68,7 +67,7 @@ app.use(express_1.default.json({ limit: '5mb' }));
 app.use(body_parser_1.default.urlencoded({ extended: true, limit: '5mb' }));
 app.use(express_1.default.static('./public'));
 // 🧯 Error Handler Middleware
-app.use(errorHandler_1.default);
+// app.use(errorHandler);
 // 🩵 Health Check Route
 app.get('/', (req, res) => {
     console.log('HIT SERVER');
