@@ -51,7 +51,8 @@ const deleteAssetController = asyncHandler(async (req: Request, res: Response) =
   if (!existingAsset) throw new ApiError(false, 404, "Asset not found");
 
   await prisma.asset.delete({ where: { id } });
-  res.status(200).json(new ApiResponse(true, 200, "Asset deleted successfully"));
+  res.status(200).json(new ApiResponse(true, 200, "Asset deleted successfully"))
 });
+
 
 export { getAllAssetsController, getAssetByIdController, createAssetController, updateAssetController, deleteAssetController };
