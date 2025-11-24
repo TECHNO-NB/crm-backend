@@ -13,7 +13,7 @@ import upload from '../middlewares/multerMiddleware';
 const router = Router();
 
 // All routes require authentication
- router.use(jwtVerify);
+router.use(jwtVerify);
 
 // Public route: fetch all projects
 router.get('/', getAllProjectsController);
@@ -23,11 +23,20 @@ router.get('/:id', getProjectByIdController);
 router.post(
   '/',
   upload.array('documents', 10),
-  // authorizeRoles('admin', 'finance', 'chairmain', 'country_chairman'),
+  authorizeRoles('admin', 'finance', 'chairmain', 'country_chairman'),
   createProjectController
 );
-router.put('/update/:id', authorizeRoles('admin', ), updateStatusProjectController);
-router.put('/:id',  upload.array('documents', 10), authorizeRoles('admin', 'country_manager'), updateProjectController);
+router.put(
+  '/update/:id',
+  authorizeRoles('admin', 'finance', 'country_manager'),
+  updateStatusProjectController
+);
+router.put(
+  '/:id',
+  upload.array('documents', 10),
+  authorizeRoles('admin', 'country_manager', 'finance'),
+  updateProjectController
+);
 router.delete('/:id', authorizeRoles('admin'), deleteProjectController);
 
 export default router;

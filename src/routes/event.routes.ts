@@ -15,8 +15,8 @@ router.get("/", getAllEventsController);
 router.get("/:id", jwtVerify, getEventByIdController);
 
 // Admin / Manager routes
-router.post("/", jwtVerify, authorizeRoles("admin", "country_manager"), createEventController);
-router.put("/:id", jwtVerify, authorizeRoles("admin", "country_manager"), updateEventController);
-router.delete("/:id", jwtVerify, authorizeRoles("admin", "country_manager"), deleteEventController);
+router.post("/", jwtVerify, authorizeRoles("admin", "country_manager","hr"), createEventController);
+router.put("/:id", jwtVerify, authorizeRoles("admin", "country_manager","hr"), updateEventController);
+router.delete("/:id", jwtVerify, authorizeRoles("admin", "country_manager","hr"), deleteEventController);
 
 export default router;

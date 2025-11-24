@@ -6,9 +6,11 @@ import {
   changeUserRole,
   getOneUser,
 } from '../controllers/user.controller.js';
-// import { jwtVerify, authorizeRoles } from '../middlewares/authMiddleware.js';
+import { jwtVerify, authorizeRoles } from '../middlewares/authMiddleware.js';
 
 const router = Router();
+
+router.use(jwtVerify);
 
 router.get('/', getAllUsers);
 
@@ -16,12 +18,12 @@ router.get('/', getAllUsers);
 router.get('/:id', getOneUser);
 
 // Admin and HR can update users
-router.put('/:id', updateUser);
+router.put('/:id', authorizeRoles('admin', 'country_manager', 'hr'), updateUser);
 
 // Admin can delete users
-router.delete('/:id', deleteUser);
+router.delete('/:id', authorizeRoles('admin', 'country_manager', 'hr'), deleteUser);
 
 // Admin can change roles
-router.patch('/:id/role', changeUserRole);
+router.patch('/:id/role', authorizeRoles('admin', 'country_manager', 'hr'), changeUserRole);
 
 export default router;

@@ -32,12 +32,7 @@ import ticketRoutes from './routes/ticket.routes.js';
 import managerProjectsRoutes from './routes/countrymanager.projects.routes.js';
 import managerFinancialdashboardRoutes from './routes/countrymanager.financedashboard.routes.js';
 import countrymanagerfinancialRoutes from './routes/countrymanager.financial.routes.js';
-
-
-
-
-
-
+import recentRoutes from './routes/recent.routes.js';
 
 const app = express();
 
@@ -106,8 +101,6 @@ app.use('/api/v1/countrymanageruser', countrymanageruserRoutes);
 app.use('/api/v1/legal', legalRoutes);
 app.use('/api/v1/tickets', ticketRoutes);
 app.use('/api/v1/managerprojects', managerProjectsRoutes);
-
-
-
+app.use('/api/v1/recent', recentRoutes);
 
 export { app, admin };

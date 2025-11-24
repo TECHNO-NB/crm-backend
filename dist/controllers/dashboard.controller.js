@@ -50,9 +50,9 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
         db_1.default.country.count(),
         db_1.default.province.count(),
     ]);
-    // --- 7. Top performing countries by total donations ---
+    // Group donations by country
     const topCountries = yield db_1.default.donation.groupBy({
-        by: ['projectId'],
+        by: ['countryId'],
         _sum: { amount: true },
         _count: { _all: true },
         orderBy: { _sum: { amount: 'desc' } },
@@ -60,19 +60,15 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
     });
     // Enrich with country names
     const topCountryDonations = yield Promise.all(topCountries.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-        if (!item.projectId)
-            return null;
-        const project = yield db_1.default.project.findUnique({
-            where: { id: item.projectId },
-            select: {
-                title: true,
-                country: { select: { countryName: true } },
-            },
+        var _a, _b, _c;
+        const country = yield db_1.default.country.findUnique({
+            where: { id: item.countryId },
+            select: { countryName: true },
         });
         return {
-            country: (project === null || project === void 0 ? void 0 : project.country.countryName) || 'Unknown',
-            project: project === null || project === void 0 ? void 0 : project.title,
-            totalDonation: item._sum.amount,
+            country: (_a = country === null || country === void 0 ? void 0 : country.countryName) !== null && _a !== void 0 ? _a : 'Unknown',
+            totalDonation: (_b = item._sum.amount) !== null && _b !== void 0 ? _b : 0,
+            donationCount: (_c = item._count._all) !== null && _c !== void 0 ? _c : 0,
         };
     })));
     // --- 8. Total Messages (optional) ---

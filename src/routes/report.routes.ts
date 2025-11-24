@@ -8,7 +8,7 @@ const router = Router();
 router.use(jwtVerify);
 
 // Dashboard summary report
-router.get("/dashboard", authorizeRoles("admin", "country_manager", "finance","volunteer"), getDashboardReportController);
+router.get("/dashboard", authorizeRoles("admin", "country_manager", "finance"), getDashboardReportController);
 
 // Single project report
 router.get("/project/:projectId", authorizeRoles("admin", "country_manager", "finance"), getProjectReportController);

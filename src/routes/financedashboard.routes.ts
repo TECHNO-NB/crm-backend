@@ -6,11 +6,9 @@ import { getAllCountryFinanceDetails } from '../controllers/financedashboard.con
 
 const router = express.Router();
 
-// Only specific roles can access
-router.get(
-  '/',
+router.use(jwtVerify);
 
-  getAllCountryFinanceDetails
-);
+// Only specific roles can access
+router.get('/', authorizeRoles('admin'), getAllCountryFinanceDetails);
 
 export default router;

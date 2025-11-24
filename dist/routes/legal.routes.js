@@ -13,15 +13,14 @@ router.use(authMiddleware_js_1.jwtVerify);
 // --- PUBLIC FETCH ---
 // Fetch all cases (with filtering)
 router.get('/', legal_controller_js_1.fetchLegalCasesController);
-router.get('/:caseId', legal_controller_js_1.getLegalCaseByIdController);
-// Routes protected by authorization (Admin/Legal team only)
-router.use(authMiddleware_js_1.jwtVerify);
+router.get('/:caseId', (0, authMiddleware_js_1.authorizeRoles)('admin', 'legal'), legal_controller_js_1.getLegalCaseByIdController);
 // --- ADD CASE ---
 // Use Multer middleware 'upload.array' for multiple file uploads
-router.post('/', multerMiddleware_js_1.default.array('documents', 5), // 'documents' is the field name, max 5 files
+router.post('/', multerMiddleware_js_1.default.array('documents', 5), (0, authMiddleware_js_1.authorizeRoles)('admin', 'legal'), // 'documents' is the field name, max 5 files
 legal_controller_js_1.addLegalCaseController);
 // --- EDIT / DELETE / STATUS CHANGE ---
-router.route('/:caseId')
+router
+    .route('/:caseId')
     .put(legal_controller_js_1.editLegalCaseController) // Edit case details
     .delete(legal_controller_js_1.deleteLegalCaseController); // Delete case
 // Specific route for status change

@@ -37,6 +37,7 @@ const ticket_routes_js_1 = __importDefault(require("./routes/ticket.routes.js"))
 const countrymanager_projects_routes_js_1 = __importDefault(require("./routes/countrymanager.projects.routes.js"));
 const countrymanager_financedashboard_routes_js_1 = __importDefault(require("./routes/countrymanager.financedashboard.routes.js"));
 const countrymanager_financial_routes_js_1 = __importDefault(require("./routes/countrymanager.financial.routes.js"));
+const recent_routes_js_1 = __importDefault(require("./routes/recent.routes.js"));
 const app = (0, express_1.default)();
 exports.app = app;
 // 🌐 CORS Configuration
@@ -96,3 +97,4 @@ app.use('/api/v1/countrymanageruser', countrymanager_user_routes_js_1.default);
 app.use('/api/v1/legal', legal_routes_js_1.default);
 app.use('/api/v1/tickets', ticket_routes_js_1.default);
 app.use('/api/v1/managerprojects', countrymanager_projects_routes_js_1.default);
+app.use('/api/v1/recent', recent_routes_js_1.default);

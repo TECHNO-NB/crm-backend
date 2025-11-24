@@ -24,18 +24,18 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
     if (!country) {
         return res.status(400).json({
             success: false,
-            message: "Country parameter is required",
+            message: 'Country parameter is required',
         });
     }
     // ===================== 1. USERS BY ROLE ======================
     const usersByRole = yield db_1.default.user.groupBy({
-        by: ["role"],
+        by: ['role'],
         where: { countryId: country },
         _count: { _all: true },
     });
     // ===================== 2. PROJECTS ===========================
     const projectsByStatus = yield db_1.default.project.groupBy({
-        by: ["status"],
+        by: ['status'],
         where: { countryId: country },
         _count: { _all: true },
     });
@@ -52,7 +52,7 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
     });
     // ===================== 4. EXPENSES ===========================
     const expenseByStatus = yield db_1.default.expense.groupBy({
-        by: ["status"],
+        by: ['status'],
         where: {
             project: {
                 countryId: country,
@@ -64,7 +64,7 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
     // ===================== 5. ACTIVE VOLUNTEERS ==================
     const activeVolunteers = yield db_1.default.user.count({
         where: {
-            role: "volunteer",
+            role: 'volunteer',
             isActive: true,
             countryId: country,
         },
@@ -76,33 +76,25 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
             where: { countryId: country },
         }),
     ]);
-    // ===================== 7. TOP DONATION COUNTRIES =============
+    // Group donations by country
     const topCountries = yield db_1.default.donation.groupBy({
-        by: ["projectId"],
-        where: {
-            project: {
-                countryId: country,
-            },
-        },
+        by: ['countryId'],
         _sum: { amount: true },
-        orderBy: { _sum: { amount: "desc" } },
+        _count: { _all: true },
+        orderBy: { _sum: { amount: 'desc' } },
         take: 5,
     });
+    // Enrich with country names
     const topCountryDonations = yield Promise.all(topCountries.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
-        if (!item.projectId)
-            return null;
-        const project = yield db_1.default.project.findUnique({
-            where: { id: item.projectId },
-            select: {
-                title: true,
-                country: { select: { countryName: true } },
-            },
+        var _a, _b, _c;
+        const country = yield db_1.default.country.findUnique({
+            where: { id: item.countryId },
+            select: { countryName: true },
         });
         return {
-            country: (_a = project === null || project === void 0 ? void 0 : project.country.countryName) !== null && _a !== void 0 ? _a : "Unknown",
-            project: project === null || project === void 0 ? void 0 : project.title,
+            country: (_a = country === null || country === void 0 ? void 0 : country.countryName) !== null && _a !== void 0 ? _a : 'Unknown',
             totalDonation: (_b = item._sum.amount) !== null && _b !== void 0 ? _b : 0,
+            donationCount: (_c = item._count._all) !== null && _c !== void 0 ? _c : 0,
         };
     })));
     // ===================== 8. TOTAL MESSAGES =====================
@@ -114,10 +106,10 @@ exports.getDashboardReportController = (0, asyncHandler_1.default)((req, res) =>
     // ===================== 9. NOTIFICATIONS (NO FILTER!) =========
     const notificationForYou = yield db_1.default.notification.findMany({
         where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
     });
     // ===================== FINAL RESPONSE =========================
-    return res.status(200).json(new apiResponse_1.default(true, 200, "Successfully fetched dashboard data", {
+    return res.status(200).json(new apiResponse_1.default(true, 200, 'Successfully fetched dashboard data', {
         usersByRole,
         totalProjects,
         projectsByStatus,

@@ -46,9 +46,9 @@ export const getDashboardReportController = asyncHandler(
       prisma.province.count(),
     ]);
 
-    // --- 7. Top performing countries by total donations ---
+    // Group donations by country
     const topCountries = await prisma.donation.groupBy({
-      by: ['projectId'],
+      by: ['countryId'],
       _sum: { amount: true },
       _count: { _all: true },
       orderBy: { _sum: { amount: 'desc' } },
@@ -58,18 +58,15 @@ export const getDashboardReportController = asyncHandler(
     // Enrich with country names
     const topCountryDonations = await Promise.all(
       topCountries.map(async (item) => {
-        if (!item.projectId) return null;
-        const project = await prisma.project.findUnique({
-          where: { id: item.projectId },
-          select: {
-            title: true,
-            country: { select: { countryName: true } },
-          },
+        const country = await prisma.country.findUnique({
+          where: { id: item.countryId },
+          select: { countryName: true },
         });
+
         return {
-          country: project?.country.countryName || 'Unknown',
-          project: project?.title,
-          totalDonation: item._sum.amount,
+          country: country?.countryName ?? 'Unknown',
+          totalDonation: item._sum.amount ?? 0,
+          donationCount: item._count._all ?? 0,
         };
       })
     );
@@ -94,7 +91,7 @@ export const getDashboardReportController = asyncHandler(
         projectsByStatus,
         totalDonation: totalDonationStats._sum.amount || 0,
         totalDonationsCount: totalDonationStats._count._all,
-         expenseByStatus,
+        expenseByStatus,
         activeVolunteers,
         totalCountries,
         totalProvinces,

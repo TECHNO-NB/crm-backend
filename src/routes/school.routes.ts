@@ -11,7 +11,7 @@ import { jwtVerify, authorizeRoles } from "../middlewares/authMiddleware.js";
 const router = Router();
 
 // Authenticated routes
-// router.use(jwtVerify);
+ router.use(jwtVerify);
 
 // Admin and Country Manager can manage schools
 router.get("/",  getAllSchoolsController);

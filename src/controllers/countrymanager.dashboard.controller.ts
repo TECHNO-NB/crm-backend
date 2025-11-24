@@ -6,8 +6,7 @@ import prisma from '../DB/db';
 
 export const getDashboardReportController = asyncHandler(
   async (req: Request, res: Response): Promise<any> => {
-
-    const { country } = req.params;  // <-- countryId from URL
+    const { country } = req.params; // <-- countryId from URL
     // @ts-ignore
     const user = req.user;
 
@@ -15,28 +14,25 @@ export const getDashboardReportController = asyncHandler(
     if (!country) {
       return res.status(400).json({
         success: false,
-        message: "Country parameter is required",
+        message: 'Country parameter is required',
       });
     }
 
     // ===================== 1. USERS BY ROLE ======================
     const usersByRole = await prisma.user.groupBy({
-      by: ["role"],
+      by: ['role'],
       where: { countryId: country },
       _count: { _all: true },
     });
 
     // ===================== 2. PROJECTS ===========================
     const projectsByStatus = await prisma.project.groupBy({
-      by: ["status"],
+      by: ['status'],
       where: { countryId: country },
       _count: { _all: true },
     });
 
-    const totalProjects = projectsByStatus.reduce(
-      (acc, p) => acc + p._count._all,
-      0
-    );
+    const totalProjects = projectsByStatus.reduce((acc, p) => acc + p._count._all, 0);
 
     // ===================== 3. DONATIONS ==========================
     const totalDonationStats = await prisma.donation.aggregate({
@@ -51,7 +47,7 @@ export const getDashboardReportController = asyncHandler(
 
     // ===================== 4. EXPENSES ===========================
     const expenseByStatus = await prisma.expense.groupBy({
-      by: ["status"],
+      by: ['status'],
       where: {
         project: {
           countryId: country,
@@ -64,7 +60,7 @@ export const getDashboardReportController = asyncHandler(
     // ===================== 5. ACTIVE VOLUNTEERS ==================
     const activeVolunteers = await prisma.user.count({
       where: {
-        role: "volunteer",
+        role: 'volunteer',
         isActive: true,
         countryId: country,
       },
@@ -78,34 +74,27 @@ export const getDashboardReportController = asyncHandler(
       }),
     ]);
 
-    // ===================== 7. TOP DONATION COUNTRIES =============
+    // Group donations by country
     const topCountries = await prisma.donation.groupBy({
-      by: ["projectId"],
-      where: {
-        project: {
-          countryId: country,
-        },
-      },
+      by: ['countryId'],
       _sum: { amount: true },
-      orderBy: { _sum: { amount: "desc" } },
+      _count: { _all: true },
+      orderBy: { _sum: { amount: 'desc' } },
       take: 5,
     });
 
+    // Enrich with country names
     const topCountryDonations = await Promise.all(
       topCountries.map(async (item) => {
-        if (!item.projectId) return null;
-        const project = await prisma.project.findUnique({
-          where: { id: item.projectId },
-          select: {
-            title: true,
-            country: { select: { countryName: true } },
-          },
+        const country = await prisma.country.findUnique({
+          where: { id: item.countryId },
+          select: { countryName: true },
         });
 
         return {
-          country: project?.country.countryName ?? "Unknown",
-          project: project?.title,
+          country: country?.countryName ?? 'Unknown',
           totalDonation: item._sum.amount ?? 0,
+          donationCount: item._count._all ?? 0,
         };
       })
     );
@@ -120,12 +109,12 @@ export const getDashboardReportController = asyncHandler(
     // ===================== 9. NOTIFICATIONS (NO FILTER!) =========
     const notificationForYou = await prisma.notification.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     // ===================== FINAL RESPONSE =========================
     return res.status(200).json(
-      new ApiResponse(true, 200, "Successfully fetched dashboard data", {
+      new ApiResponse(true, 200, 'Successfully fetched dashboard data', {
         usersByRole,
         totalProjects,
         projectsByStatus,
